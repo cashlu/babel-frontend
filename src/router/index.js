@@ -12,8 +12,6 @@ import LocFiles from "../components/LocFiles"
 import ApprSample from "../components/ApprSample"
 import AddiFiles from "../components/AddiFiles"
 import Orgs from "../components/Orgs"
-import ApprTypes from "../components/ApprTypes"
-import ApprPurposes from "../components/ApprPurposes"
 
 
 Vue.use(VueRouter)
@@ -36,8 +34,6 @@ const routes = [
             {path: '/apprsamps', component: ApprSample},
             {path: '/addifiles', component: AddiFiles},
             {path: '/orgs', component: Orgs},
-            {path: '/apprtypes', component: ApprTypes},
-            {path: '/apprpurposes', component: ApprPurposes},
         ]
     },
 ]
