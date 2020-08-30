@@ -468,6 +468,7 @@
 <!--                        return-->
 <!--                    }-->
 <!--                    const {data: res} = await this.$axios.post("basicinfos/", this.addProjForm)-->
+<!--                    -->
 <!--                    if (res.status !== 201) {-->
 <!--                        return this.$message.error("创建项目失败，请联系管理员")-->
 <!--                    }-->
@@ -482,7 +483,7 @@
 <!--            },-->
 <!--            // 修改对话框的关闭事件-->
 <!--            editProjDialogClosed() {-->
-<!--                this.$refs.editProjFormRef.resetFields()-->
+<!--                // this.$refs.editProjFormRef.resetFields()-->
 <!--            },-->
 <!--            // 编辑按钮的点击事件-->
 <!--            async showEditProjDialog(id) {-->
@@ -594,24 +595,64 @@
             <!-- 添加项目的按钮区 -->
             <el-row>
                 <el-col>
-                    <el-button type="primary" @click="showBasicInfoDialog()">添加项目</el-button>
+                    <el-button type="primary" @click="showAddDialog">添加项目</el-button>
                 </el-col>
             </el-row>
             <!-- 项目列表 -->
             <el-table
-                    :data="projectList"
-                    style="width: 100%">
+                :data="basicInfoList"
+                style="width: 100%">
+                <el-table-column type="expand">
+                    <template slot-scope="props">
+                        <el-form label-position="left" inline class="demo-table-expand">
+                            <el-form-item label="项目编号">
+                                <span>{{ props.row.sn }}</span>
+                            </el-form-item>
+                            <el-form-item label="项目名称">
+                                <span>{{ props.row.name }}</span>
+                            </el-form-item>
+                            <el-form-item label="委托方">
+                                <span>{{ props.row.principal }}</span>
+                            </el-form-item>
+
+                            <el-form-item label="鉴定对象">
+                                <span>{{ props.row.target }}</span>
+                            </el-form-item>
+                            <el-form-item label="委托时间">
+                                <span>{{ props.row.trust_date }}</span>
+                            </el-form-item>
+                            <el-form-item label="受理时间">
+                                <span>{{ props.row.created_date }}</span>
+                            </el-form-item>
+                            <el-form-item label="鉴定机构">
+                                <span>{{ props.row.org_name }}</span>
+                            </el-form-item>
+                            <el-form-item label="鉴定类别">
+                                <span>{{ props.row.type_name }}</span>
+                            </el-form-item>
+                            <el-form-item label="案由">
+                                <span>{{ props.row.purpose_name }}</span>
+                            </el-form-item>
+                            <el-form-item label="是否二次鉴定">
+                                <span>{{ props.row.is_re_appraisal }}</span>
+                            </el-form-item>
+                            <el-form-item label="委托事项">
+                                <span>{{ props.row.trust_detail }}</span>
+                            </el-form-item>
+                        </el-form>
+                    </template>
+                </el-table-column>
                 <!-- 索引列 -->
                 <el-table-column type="index" label="序号"></el-table-column>
                 <!-- 数据列 -->
                 <el-table-column
-                        prop="sn"
-                        label="项目编号"
-                        width="180">
+                    prop="sn"
+                    label="项目编号"
+                    width="180">
                 </el-table-column>
                 <el-table-column
-                        prop="name"
-                        label="项目名称"
+                    prop="name"
+                    label="项目名称"
                         width="180">
                 </el-table-column>
                 <el-table-column
@@ -633,7 +674,12 @@
                         <!-- 如果要使用作用域插槽的话，那么使用的元素必须包裹在template中。 -->
                         <el-button size="mini"
                                    type="primary"
-                                   @click="showBasicInfoDialog(scope.row.id)"
+                                   @click="showDetailDialog(scope.row)"
+                                   icon="el-icon-edit">查看
+                        </el-button>
+                        <el-button size="mini"
+                                   type="primary"
+                                   @click="showEditDialog(scope.row.id)"
                                    icon="el-icon-edit">编辑
                         </el-button>
                         <el-button size="mini"
@@ -657,73 +703,69 @@
                 :total="this.total">
         </el-pagination>
 
-        <!-- 添加、编辑项目的对话框 -->
+        <!-- 添加项目的对话框 -->
         <el-dialog
-                title="项目基础信息"
-                :close-on-click-modal="false"
-                :visible.sync="basicInfoDialogVisible"
-                @close="closeDialog"
-                width="80%">
+            title="添加项目基础信息"
+            :close-on-click-modal="false"
+            :visible.sync="addDialogVisible"
+            @close="addDialogClosed"
+            width="80%">
             <!-- 添加项目的表单 -->
-            <el-form :model="basicInfoForm"
-                     :rules="basicInfoFormRules"
-                     ref="basicInfoFormRef"
+            <el-form :model="addForm"
+                     :rules="basicInfoRules"
+                     ref="addFormRef"
                      label-width="100px">
                 <!-- prop是验证规则 -->
                 <el-row :gutter="20">
                     <el-col :span="8">
                         <el-form-item label="项目编号：" prop="sn">
-                            <el-input v-model="basicInfoForm.sn" :readonly="readonly"></el-input>
+                            <el-input v-model="addForm.sn"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="16">
                         <el-form-item label="项目名称：" prop="name">
-                            <el-input v-model="basicInfoForm.name" :readonly="readonly"></el-input>
+                            <el-input v-model="addForm.name"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-form-item label="委托方：" prop="principal">
-                    <el-input v-model="basicInfoForm.principal" :readonly="readonly"></el-input>
+                    <el-input v-model="addForm.principal"></el-input>
                 </el-form-item>
                 <el-form-item label="鉴定对象：" prop="target">
-                    <el-input v-model="basicInfoForm.target" :readonly="readonly"></el-input>
+                    <el-input v-model="addForm.target"></el-input>
                 </el-form-item>
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="委托时间：" prop="trust_date">
                             <el-date-picker
-                                    :readonly="readonly"
-                                    v-model="basicInfoForm.trust_date"
-                                    align="right"
-                                    type="date"
-                                    placeholder="选择日期"
-                                    format="yyyy 年 MM 月 dd 日"
-                                    value-format="yyyy-MM-dd"
-                                    :picker-options="pickerOptions">
+                                v-model="addForm.trust_date"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
                             </el-date-picker>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="受理时间：" prop="created_date">
                             <el-date-picker
-                                    :readonly="readonly"
-                                    v-model="basicInfoForm.created_date"
-                                    type="date"
-                                    placeholder="选择日期"
-                                    format="yyyy 年 MM 月 dd 日"
-                                    value-format="yyyy-MM-dd">
+                                v-model="addForm.created_date"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
                             </el-date-picker>
                         </el-form-item>
                     </el-col>
                 </el-row>
 
                 <el-form-item label="鉴定机构：" prop="org">
-                    <el-select v-model="basicInfoForm.org" :disabled="readonly">
+                    <el-select v-model="addForm.org" placeholder="请选择">
                         <el-option
-                                v-for="item in orgList"
-                                :key="item.id"
-                                :label="item.name"
-                                :value="item.id">
+                            v-for="item in orgList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
                         </el-option>
                     </el-select>
                 </el-form-item>
@@ -731,24 +773,25 @@
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item label="鉴定类型：" prop="type">
-                            <el-select v-model="basicInfoForm.type" :disabled="readonly">
+                            <el-select v-model="addForm.type" placeholder="请选择">
                                 <el-option
-                                        v-for="item in apprType"
-                                        :key="item.id"
-                                        :label="item.name"
-                                        :value="item.id">
+                                    v-for="item in apprType"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
                                 </el-option>
                             </el-select>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
+
                         <el-form-item label="案由：" prop="purpose">
-                            <el-select v-model="basicInfoForm.purpose" :disabled="readonly">
+                            <el-select v-model="addForm.purpose" placeholder="请选择">
                                 <el-option
-                                        v-for="item in apprPurps"
-                                        :key="item.id"
-                                        :label="item.name"
-                                        :value="item.id">
+                                    v-for="item in apprPurps"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
                                 </el-option>
                             </el-select>
                         </el-form-item>
@@ -756,26 +799,228 @@
                 </el-row>
                 <el-form-item label="二次鉴定：">
                     <el-switch
-                            v-model="basicInfoForm.is_re_appraisal"
-                            active-color="#13ce66"
-                            inactive-color="#ff4949">
+                        v-model="addForm.is_re_appraisal"
+                        active-color="#13ce66"
+                        inactive-color="#ff4949">
                     </el-switch>
                 </el-form-item>
                 <el-form-item label="委托事项：" prop="trust_detail">
                     <el-input type="textarea"
-                              :readonly="readonly"
                               :autosize="{ minRows: 4, maxRows: 10}"
-                              v-model="basicInfoForm.trust_detail"></el-input>
+                              v-model="addForm.trust_detail"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="basicInfoDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="saveBasicInfo">确 定</el-button>
+                <el-button @click="addDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addBasicInfo">确 定</el-button>
             </span>
         </el-dialog>
 
-    </div>
 
+        <!-- 编辑项目的对话框 -->
+        <el-dialog
+            title="修改项目基础信息"
+            :close-on-click-modal="false"
+            :visible.sync="editDialogVisible"
+            @close="editDialogClosed"
+            width="80%">
+            <!-- 编辑项目的表单 -->
+            <el-form :model="editForm"
+                     :rules="basicInfoRules"
+                     ref="editFormRef"
+                     label-width="100px">
+                <!-- prop是验证规则 -->
+                <el-row :gutter="20">
+                    <el-col :span="8">
+                        <el-form-item label="项目编号：" prop="sn">
+                            <el-input v-model="editForm.sn"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="16">
+                        <el-form-item label="项目名称：" prop="name">
+                            <el-input v-model="editForm.name"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="委托方：" prop="principal">
+                    <el-input v-model="editForm.principal"></el-input>
+                </el-form-item>
+                <el-form-item label="鉴定对象：" prop="target">
+                    <el-input v-model="editForm.target"></el-input>
+                </el-form-item>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item label="委托时间：" prop="trust_date">
+                            <el-date-picker
+                                v-model="editForm.trust_date"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="受理时间：" prop="created_date">
+                            <el-date-picker
+                                v-model="editForm.created_date"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="鉴定机构：" prop="org">
+                    <el-select v-model="editForm.org" placeholder="请选择">
+                        <el-option
+                            v-for="item in orgList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item label="鉴定类型：" prop="type">
+                            <el-select v-model="editForm.type" placeholder="请选择">
+                                <el-option
+                                    v-for="item in apprType"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="案由：" prop="purpose">
+                            <el-select v-model="editForm.purpose" placeholder="请选择">
+                                <el-option
+                                    v-for="item in apprPurps"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="二次鉴定：">
+                    <el-switch
+                        v-model="editForm.is_re_appraisal"
+                        active-color="#13ce66"
+                        inactive-color="#ff4949">
+                    </el-switch>
+                </el-form-item>
+                <el-form-item label="委托事项：" prop="trust_detail">
+                    <el-input type="textarea"
+                              :autosize="{ minRows: 4, maxRows: 10}"
+                              v-model="editForm.trust_detail"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+            <el-button @click="editDialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="editBasicInfo">确 定</el-button>
+          </span>
+        </el-dialog>
+
+
+        <!-- 查看项目的对话框 -->
+        <el-dialog
+            title="查看项目基础信息"
+            :close-on-click-modal="false"
+            :visible.sync="detailDialogVisible"
+            @close="detailDialogClosed"
+            width="80%">
+            <!-- 编辑项目的表单 -->
+            <el-form :model="detailForm"
+                     :rules="basicInfoRules"
+                     ref="detailFormRef"
+                     label-width="100px">
+                <!-- prop是验证规则 -->
+                <el-row :gutter="20">
+                    <el-col :span="8">
+                        <el-form-item label="项目编号：" prop="sn">
+                            <el-input v-model="detailForm.sn" :readonly="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="16">
+                        <el-form-item label="项目名称：" prop="name">
+                            <el-input v-model="detailForm.name" :readonly="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="委托方：" prop="principal">
+                    <el-input v-model="detailForm.principal" :readonly="true"></el-input>
+                </el-form-item>
+                <el-form-item label="鉴定对象：" prop="target">
+                    <el-input v-model="detailForm.target" :readonly="true"></el-input>
+                </el-form-item>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item label="委托时间：" prop="trust_date">
+                            <el-date-picker
+                                :readonly="true"
+                                v-model="detailForm.trust_date"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="受理时间：" prop="created_date">
+                            <el-date-picker
+                                :readonly="true"
+                                v-model="detailForm.created_date"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="鉴定机构：" prop="org">
+                    <el-input v-model="detailForm.org_name" :readonly="true"></el-input>
+                </el-form-item>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item label="鉴定类型：" prop="type">
+                            <el-input v-model="detailForm.type_name" :readonly="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="案由：" prop="purpose">
+                            <el-input v-model="detailForm.purpose_name" :readonly="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="二次鉴定：">
+                    <el-switch
+                        disabled
+                        v-model="detailForm.is_re_appraisal"
+                        active-color="#13ce66"
+                        inactive-color="#ff4949">
+                    </el-switch>
+                </el-form-item>
+                <el-form-item label="委托事项：" prop="trust_detail">
+                    <el-input type="textarea"
+                              :readonly="true"
+                              :autosize="{ minRows: 4, maxRows: 10}"
+                              v-model="detailForm.trust_detail"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+            <el-button @click="detailDialogVisible = false">关 闭</el-button>
+
+          </span>
+        </el-dialog>
+    </div>
 </template>
 
 <script>
@@ -792,10 +1037,12 @@
                     stage: "",
                 },
                 // 项目列表
-                projectList: [],
+                basicInfoList: [],
                 total: 0,
-                basicInfoDialogVisible: false,
-                basicInfoForm: {
+                addDialogVisible: false,
+                editDialogVisible: false,
+                detailDialogVisible: false,
+                addForm: {
                     sn: "",
                     name: "",
                     principal: "",
@@ -808,10 +1055,36 @@
                     is_re_appraisal: "false",
                     trust_detail: ""
                 },
+                editForm: {
+                    sn: "",
+                    name: "",
+                    principal: "",
+                    target: "",
+                    trust_date: "",
+                    created_date: "",
+                    org: "",
+                    type: "",
+                    purpose: "",
+                    is_re_appraisal: "",
+                    trust_detail: ""
+                },
+                detailForm: {
+                    sn: "",
+                    name: "",
+                    principal: "",
+                    target: "",
+                    trust_date: "",
+                    created_date: "",
+                    org: "",
+                    type: "",
+                    purpose: "",
+                    is_re_appraisal: "",
+                    trust_detail: ""
+                },
                 orgList: [],
                 apprType: [],
                 apprPurps: [],
-                basicInfoFormRules: {
+                basicInfoRules: {
                     sn: [
                         {required: true, message: "请输入项目编号", trigger: "blur"},
                     ],
@@ -843,48 +1116,10 @@
                         {required: true, message: "请输入委托事项", trigger: "blur"},
                     ],
 
-                },
-                readonly: false,
-                requestType: "",
-                pickerOptions: {
-                    // 不能选择未来的日期
-                    // disabledDate(time) {
-                    //     return time.getTime() > Date.now()
-                    // },
-                    shortcuts: [{
-                        text: '今天',
-                        onClick(picker) {
-                            picker.$emit('pick', new Date())
-                        }
-                    }, {
-                        text: '昨天',
-                        onClick(picker) {
-                            const date = new Date()
-                            date.setTime(date.getTime() - 3600 * 1000 * 24)
-                            picker.$emit('pick', date)
-                        }
-                    }, {
-                        text: '一周前',
-                        onClick(picker) {
-                            const date = new Date()
-                            date.setTime(date.getTime() - 3600 * 1000 * 24 * 7)
-                            picker.$emit('pick', date)
-                        }
-                    }]
-                },
+                }
             }
         },
         methods: {
-            async getBasicInfoList() {
-                const res = await this.$axios.get("basicinfos/", {
-                    params: this.queryInfo
-                })
-                if (res.status !== 200) {
-                    return this.$message.error("获取项目列表失败, 刷新重试")
-                }
-                this.projectList = res.data.results
-                this.total = res.data.count
-            },
             async getOrgList() {
                 const res = await this.$axios.get("orgs")
                 if (res.status !== 200) {
@@ -906,55 +1141,73 @@
                 }
                 this.apprPurps = res.data
             },
-            // 打开对话框
-            async showBasicInfoDialog(id) {
-                if (id) {
-                    // 修改资料
-                    this.requestType = "put"
-                    const res = await this.$axios.get("basicinfos/" + id)
-                    if (res.status !== 200) {
-                        return this.$message.error("获取基础信息失败")
-                    }
-                    this.basicInfoForm = res.data
-                } else {
-                    // 添加资料
-                    this.requestType = "post"
+            async getBasicInfoList() {
+                const res = await this.$axios.get("basicinfos/", {
+                    params: this.queryInfo
+                })
+                if (res.status !== 200) {
+                    return this.$message.error("获取项目列表失败, 刷新重试")
                 }
-                this.basicInfoDialogVisible = true
+                this.basicInfoList = res.data.results
+                this.total = res.data.count
             },
-            // 关闭对话框
-            closeDialog() {
-                this.$refs.basicInfoFormRef.resetFields()
-                this.basicInfoDialogVisible = false
-                this.readonly = false
-                this.getBasicInfoList()
+            showAddDialog() {
+                this.addDialogVisible = true
+                this.getOrgList()
+                this.getApprTypeList()
+                this.getApprPurpList()
             },
-            // 提交保存信息
-            saveBasicInfo() {
-                this.$refs.basicInfoFormRef.validate(async (valid) => {
+            async addBasicInfo() {
+                this.$refs.addFormRef.validate(async (valid) => {
                     if (!valid) {
-                        this.$message.error("表单验证失败")
                         return
                     }
-                    if (this.requestType === "post") {      // 新增
-                        const res = await this.$axios.post("basicinfos/", this.basicInfoForm)
-                        if (res.status !== 201) {
-                            return this.$message.error("创建失败")
-                        }
-                        this.$message.success("创建成功")
-                    } else {        // 编辑
-                        // console.log(this.requestType)
-                        const res = await this.$axios.put("basicinfos/" + this.basicInfoForm.id + "/",
-                            this.basicInfoForm)
-                        if (res.status !== 200) {
-                            return this.$message.error("编辑失败")
-                        }
-                        this.$message.success("编辑成功")
+                    const res = await this.$axios.post("basicinfos/", this.addForm)
+                    if (res.status !== 201) {
+                        return this.$message.error("创建项目失败，请联系管理员")
                     }
-                    this.closeDialog()
+                    this.$message.success("创建项目成功")
+                    this.addDialogVisible = false
+                    this.getBasicInfoList()
                 })
             },
-
+            addDialogClosed() {
+                this.$refs.addFormRef.resetFields()
+            },
+            // 修改对话框的关闭事件
+            editDialogClosed() {
+                // this.$refs.editProjFormRef.resetFields()
+            },
+            // 编辑按钮的点击事件
+            async showEditDialog(id) {
+                this.getOrgList()
+                this.getApprTypeList()
+                this.getApprPurpList()
+                const res = await this.$axios.get("basicinfos/" + id)
+                if (res.status !== 200) {
+                    this.$message.error("获取项目信息失败")
+                }
+                this.editForm = res.data
+                this.editDialogVisible = true
+            },
+            // 修改对话框表单的提交事件
+            editBasicInfo() {
+                this.$refs.editFormRef.validate(async (valid) => {
+                        if (!valid) {
+                            return false
+                        } else {
+                            const res = await this.$axios.put(
+                                "basicinfos/" + this.editForm.id + "/", this.editForm)
+                            if (res.status !== 200) {
+                                this.$message.error(res.data.msg)
+                            }
+                            this.editDialogVisible = false
+                            this.getBasicInfoList()
+                            this.$message.success("编辑成功")
+                        }
+                    }
+                )
+            },
             // 通过id删除项目
             async deleteBasicInfo(id) {
                 const confirmResult = await this.$confirm('此操作将永久删除该项目, 是否继续?',
@@ -971,10 +1224,17 @@
                 }
                 const res = await this.$axios.delete("basicinfos/" + id)
                 if (res.status !== 204) {
-                    return this.$message.error("删除失败，请稍后再试，或者联系管理员")
+                    return this.$message.error("删除项目失败")
                 }
                 this.$message.success("删除项目成功")
                 this.getBasicInfoList()
+            },
+            showDetailDialog(row) {
+                this.detailDialogVisible = true
+                this.detailForm = row
+            },
+            detailDialogClosed() {
+                this.detailDialogVisible = false
             },
             // 分页器size变化的监听事件
             handleSizeChange(size) {
@@ -999,9 +1259,6 @@
         },
         created() {
             this.getBasicInfoList()
-            this.getOrgList()
-            this.getApprTypeList()
-            this.getApprPurpList()
         }
     }
 </script>
@@ -1022,3 +1279,5 @@
         width: 50%;
     }
 </style>
+
+

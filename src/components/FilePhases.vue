@@ -95,7 +95,6 @@
         <el-dialog title="新建归档"
                    :visible.sync="addDialogVisible"
                    :close-on-click-modal="false"
-                   @close="closeAddDialog"
                    width="30%">
             <el-form ref="addFileFormRef"
                      :rules="filePhaseFormRules"
@@ -134,7 +133,7 @@
                     </el-date-picker>
                 </el-form-item>
                 <el-form-item label="案卷数量" prop="amount">
-                    <el-input v-model.number="filePhaseForm.amount"></el-input>
+                    <el-input v-model.number="filePhaseForm.amount" placeholder="请输入正整数"></el-input>
                 </el-form-item>
                 <el-form-item label="送达状态" prop="delivery">
                     <el-select v-model="filePhaseForm.delivery">
@@ -156,7 +155,6 @@
         <el-dialog title="编辑归档"
                    :visible.sync="editDialogVisible"
                    :close-on-click-modal="false"
-                   @close="closeEditDialog"
                    width="30%">
             <el-form ref="editFileFormRef"
                      :rules="filePhaseFormRules"
@@ -244,7 +242,7 @@
                     finished_date: "",
                     file_date: "",
                     archivist: window.localStorage.getItem("id"),
-                    amount: 1,
+                    amount: "",
                     delivery: ""
                 },
                 filePhaseFormRules: {
@@ -300,7 +298,6 @@
                 }
                 this.total = res.count
                 this.filePhasesList = res.data.results
-                console.log(res.data.results)
             },
             async getBasicInfoList() {
                 const res = await this.$axios.get("basicinfos/", {
@@ -310,7 +307,6 @@
                     return this.$message.error("获取项目列表失败")
                 }
                 this.basicInfoList = res.data
-                console.log(this.basicInfoList)
             },
             async getDeliverStateList() {
                 const res = await this.$axios.get("deliverystates/")
@@ -330,15 +326,16 @@
             // TODO: 这个方法貌似可以去掉，把语句写在行间
             showAddDialog() {
                 this.addDialogVisible = true
+                this.$nextTick(() => {
+                    // 清空fileData
+                    this.filePhaseForm = {}
+                    // 给fileData一些必要的初始化值，例如这里赋值了登录用户的ID
+                    this.filePhaseForm.archivist = window.localStorage.getItem("id")
+                    // 这个操作主要的目的是清除表单验证的提示
+                    this.$refs.addFileFormRef.resetFields()
+                })
             },
-            closeAddDialog() {
-                this.addDialogVisible = false
-                this.$refs.addFileFormRef.resetFields()
-            },
-            closeEditDialog() {
-                this.editDialogVisible = false
-                this.$refs.editFileFormRef.resetFields()
-            },
+
             addFilePhase() {
                 this.$refs.addFileFormRef.validate(async (valid) => {
                     if (!valid) {
@@ -360,7 +357,7 @@
                     if (projRes.status !== 200) {
                         return this.$message.error("状态更新失败")
                     }
-                    this.closeAddDialog()
+                    this.addDialogVisible = false
                     this.getFileList()
                 })
             },
@@ -369,7 +366,6 @@
                 if (res.status !== 200) {
                     return this.$message.error("获取归档信息失败")
                 }
-                console.log(res.data)
                 this.filePhaseForm = res.data
                 this.editDialogVisible = true
             },
@@ -414,6 +410,7 @@
                     return this.$message.error("重置状态失败")
                 }
                 this.getFileList()
+                this.getBasicInfoList()
                 return this.$message.success("删除归档成功")
 
             },
