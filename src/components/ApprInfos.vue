@@ -1266,6 +1266,7 @@
                 <!--        </el-form>-->
                 <!--    </template>-->
                 <!--</el-table-column>-->
+
                 <!-- 索引列 -->
                 <el-table-column type="index" label="序号"></el-table-column>
                 <!-- 数据列 -->
@@ -1359,16 +1360,6 @@
                         :data="transferUserList">
                     </el-transfer>
                 </el-form-item>
-                <el-form-item label="复核人" prop="reviewer">
-                    <el-select v-model="addForm.reviewer" placeholder="请选择">
-                        <el-option
-                            v-for="item in userList"
-                            :key="item.id"
-                            :label="item.name"
-                            :value="item.id">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
                 <el-form-item label="立卷人" prop="archivist">
                     <el-select v-model="addForm.archivist" placeholder="请选择">
                         <el-option
@@ -1379,6 +1370,27 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
+                <el-form-item label="校对人" prop="proofreader">
+                    <el-select v-model="addForm.proofreader" placeholder="请选择">
+                        <el-option
+                            v-for="item in userList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="复核人" prop="reviewer">
+                    <el-select v-model="addForm.reviewer" placeholder="请选择">
+                        <el-option
+                            v-for="item in userList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+
                 <el-form-item label="鉴定地址" prop="appraisal_address">
                     <el-input v-model="addForm.appraisal_address" placeholder="请输入地址"></el-input>
                 </el-form-item>
@@ -1454,16 +1466,6 @@
                         :data="transferUserList">
                     </el-transfer>
                 </el-form-item>
-                <el-form-item label="复核人" prop="reviewer">
-                    <el-select v-model="editForm.reviewer" placeholder="请选择">
-                        <el-option
-                            v-for="item in userList"
-                            :key="item.id"
-                            :label="item.name"
-                            :value="item.id">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
                 <el-form-item label="立卷人" prop="archivist">
                     <el-select v-model="editForm.archivist" placeholder="请选择">
                         <el-option
@@ -1474,6 +1476,27 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
+                <el-form-item label="校对人" prop="proofreader">
+                    <el-select v-model="editForm.proofreader" placeholder="请选择">
+                        <el-option
+                            v-for="item in userList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="复核人" prop="reviewer">
+                    <el-select v-model="editForm.reviewer" placeholder="请选择">
+                        <el-option
+                            v-for="item in userList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+
                 <el-form-item label="鉴定地址" prop="appraisal_address">
                     <el-input v-model="editForm.appraisal_address" placeholder="请输入地址"></el-input>
                 </el-form-item>
@@ -1541,11 +1564,14 @@
                                  :data="transferUserList">
                     </el-transfer>
                 </el-form-item>
+                <el-form-item label="立卷人" prop="archivist">
+                    <el-input v-model="detailForm.archivist_name" :readonly="true"></el-input>
+                </el-form-item>
+                <el-form-item label="校对人" prop="proofreader">
+                    <el-input v-model="detailForm.proofreader_name" :readonly="true"></el-input>
+                </el-form-item>
                 <el-form-item label="复核人" prop="reviewer">
                     <el-input v-model="detailForm.reviewer_name" :readonly="true"></el-input>
-                </el-form-item>
-                <el-form-item label="立卷人" prop="archivist">
-                    <el-input v-model="detailForm.archivist_name"></el-input>
                 </el-form-item>
                 <el-form-item label="鉴定地址" prop="appraisal_address">
                     <el-input v-model="detailForm.appraisal_address" :readonly="true"></el-input>
@@ -1635,6 +1661,7 @@ export default {
                 appraisal_team: [],
                 reviewer: "",
                 archivist: "",
+                proofreader: "",
                 appraisal_address: "",
                 contact: "",
                 phone: "",
@@ -1648,6 +1675,7 @@ export default {
                 appraisal_team: [],
                 reviewer: "",
                 archivist: "",
+                proofreader: "",
                 appraisal_address: "",
                 contact: "",
                 phone: "",
@@ -1661,6 +1689,7 @@ export default {
                 appraisal_team: [],
                 reviewer: "",
                 archivist: "",
+                proofreader: "",
                 appraisal_address: "",
                 contact: "",
                 phone: "",
@@ -1699,7 +1728,9 @@ export default {
                 ],
                 archivist: [
                     {required: true, message: "请选择立卷人", trigger: "blur"},
-
+                ],
+                proofreader: [
+                    {required: true, message: "请选择校对人", trigger: "blur"},
                 ],
                 appraisal_date: [
                     {required: true, message: "请选择日期", trigger: "blur"},
