@@ -526,6 +526,7 @@ export default {
                 return this.$message.error("获取项目列表失败")
             }
             this.basicInfoList = res.data
+            console.log(this.basicInfoList);
 
         },
         showAddApprFileDialog() {
@@ -661,9 +662,7 @@ export default {
             this.myHeaders["authorization"] = "JWT " + window.localStorage.getItem("token")
         },
 
-        // TODO: @closed和下面的按钮会把这个方法执行两次？？？
         UploadDialogClosed() {
-            console.log("gogogo")
             this.uploadDialogVisible = false
             this.fileList = []
             this.getApprFileList()

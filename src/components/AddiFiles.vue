@@ -349,7 +349,7 @@
                 this.addiFileList = res.data.results
                 this.total = res.data.count
             },
-            async getBasicInfoList() {
+            async getBasicInfoList(stage) {
                 const res = await this.$axios.get("basicinfos/", {
                     params: this.queryInfo
                 })
