@@ -57,12 +57,13 @@
                         <el-button size="mini"
                                    type="primary"
                                    @click="showEditDialog(scope.row.id)"
-                                   v-show="scope.row.basic_info_stage === 3"
+                                   v-show="scope.row.basic_info_stage === 5"
                                    icon="el-icon-edit">编辑
                         </el-button>
                         <el-button size="mini"
                                    type="danger"
                                    @click="deleteApprInfo(scope.row)"
+                                   v-show="scope.row.basic_info_stage === 5"
                                    icon="el-icon-delete">删除
                         </el-button>
                     </template>
@@ -507,8 +508,7 @@ export default {
             this.total = res.data.count
         },
         showAddDialog() {
-            // 新建鉴定信息时，只能获取阶段为1的项目列表
-            this.getBasicInfoList("2")
+            this.getBasicInfoList("4")
             this.addDialogVisible = true
             this.$nextTick(() => {
                 this.addForm = {}
@@ -578,7 +578,9 @@ export default {
                         "stage": stage
                     },
                     {
-                        params: {query: "one"}
+                        params: {
+                            stage: 0
+                        }
                     }
                 )
                 if (projRes.status !== 200) {
@@ -608,7 +610,9 @@ export default {
                         "stage": stage
                     },
                     {
-                        params: {query: "one"}
+                        params: {
+                            stage: 0
+                        }
                     }
                 )
                 if (projRes.status !== 200) {
@@ -644,7 +648,9 @@ export default {
                     "stage": 4
                 },
                 {
-                    params: {query: "one"}
+                    params: {
+                        stage: 0
+                    }
                 }
             )
             if (projRes.status !== 200) {
