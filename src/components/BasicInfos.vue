@@ -18,46 +18,6 @@
             <el-table
                 :data="basicInfoList"
                 style="width: 100%">
-                <el-table-column type="expand">
-                    <template slot-scope="props">
-                        <el-form label-position="left" inline class="demo-table-expand">
-                            <el-form-item label="项目编号">
-                                <span>{{ props.row.sn }}</span>
-                            </el-form-item>
-                            <el-form-item label="项目名称">
-                                <span>{{ props.row.name }}</span>
-                            </el-form-item>
-                            <el-form-item label="委托方">
-                                <span>{{ props.row.principal }}</span>
-                            </el-form-item>
-
-                            <el-form-item label="鉴定对象">
-                                <span>{{ props.row.target }}</span>
-                            </el-form-item>
-                            <el-form-item label="委托时间">
-                                <span>{{ props.row.trust_date }}</span>
-                            </el-form-item>
-                            <el-form-item label="受理时间">
-                                <span>{{ props.row.created_date }}</span>
-                            </el-form-item>
-                            <el-form-item label="鉴定机构">
-                                <span>{{ props.row.org_name }}</span>
-                            </el-form-item>
-                            <el-form-item label="鉴定类别">
-                                <span>{{ props.row.type_name }}</span>
-                            </el-form-item>
-                            <el-form-item label="鉴定用途">
-                                <span>{{ props.row.purpose_name }}</span>
-                            </el-form-item>
-                            <el-form-item label="是否二次鉴定">
-                                <span>{{ props.row.is_re_appraisal }}</span>
-                            </el-form-item>
-                            <el-form-item label="委托事项">
-                                <span>{{ props.row.trust_detail }}</span>
-                            </el-form-item>
-                        </el-form>
-                    </template>
-                </el-table-column>
                 <!-- 索引列 -->
                 <el-table-column type="index" label="序号"></el-table-column>
                 <!-- 数据列 -->
@@ -94,7 +54,7 @@
                                    @click="showDetailDialog(scope.row)"
                                    icon="el-icon-edit">查看
                         </el-button>
-                        <!--                        判断stage，如果该项目不是立项中阶段（1），则不能修改-->
+                        <!-- 判断stage，如果该项目不是立项中阶段（1），则不能修改-->
                         <el-button size="mini"
                                    type="warning"
                                    @click="showEditDialog(scope.row.id)"
@@ -105,6 +65,12 @@
                                    type="danger"
                                    @click="deleteBasicInfo(scope.row.id)"
                                    icon="el-icon-delete">删除
+                        </el-button>
+                        <el-button size="mini"
+                                   type="primary"
+                                   @click="showReviewDialog(scope.row.id)"
+                                   v-show="scope.row.reviewer === parseInt(loginUserID) && (scope.row.stage === '2' || scope.row.stage === '3')"
+                                   icon="el-icon-s-check">审批
                         </el-button>
                     </template>
                 </el-table-column>
@@ -133,7 +99,7 @@
             <el-form :model="addForm"
                      :rules="basicInfoRules"
                      ref="addFormRef"
-                     label-width="100px">
+                     label-width="120px">
                 <!-- prop是验证规则 -->
                 <el-row :gutter="20">
                     <el-col :span="8">
@@ -203,7 +169,6 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-
                         <el-form-item label="鉴定用途：" prop="purpose">
                             <el-select v-model="addForm.purpose" placeholder="请选择">
                                 <el-option
@@ -228,6 +193,16 @@
                               :autosize="{ minRows: 4, maxRows: 10}"
                               v-model="addForm.trust_detail"></el-input>
                 </el-form-item>
+                <el-form-item label="立项审批人：" prop="reviewer">
+                    <el-select v-model="addForm.reviewer" placeholder="请选择">
+                        <el-option
+                            v-for="item in userList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button type="info" @click="addDialogVisible = false" style="font-weight: bold">取 消</el-button>
@@ -248,7 +223,7 @@
             <el-form :model="editForm"
                      :rules="basicInfoRules"
                      ref="editFormRef"
-                     label-width="100px">
+                     label-width="120px">
                 <!-- prop是验证规则 -->
                 <el-row :gutter="20">
                     <el-col :span="8">
@@ -340,6 +315,16 @@
                               :autosize="{ minRows: 4, maxRows: 10}"
                               v-model="editForm.trust_detail"></el-input>
                 </el-form-item>
+                <el-form-item label="立项审批人：" prop="reviewer">
+                    <el-select v-model="editForm.reviewer" placeholder="请选择">
+                        <el-option
+                            v-for="item in userList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button type="info" @click="editDialogVisible = false" style="font-weight: bold">取 消</el-button>
@@ -360,7 +345,7 @@
             <el-form :model="detailForm"
                      :rules="basicInfoRules"
                      ref="detailFormRef"
-                     label-width="100px">
+                     label-width="120px">
                 <!-- prop是验证规则 -->
                 <el-row :gutter="20">
                     <el-col :span="8">
@@ -435,10 +420,131 @@
                               :autosize="{ minRows: 4, maxRows: 10}"
                               v-model="detailForm.trust_detail"></el-input>
                 </el-form-item>
+                <el-form-item label="立项审批人：" prop="reviewer">
+                    <el-input v-model="detailForm.reviewer_name" :readonly="true"></el-input>
+                </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
             <el-button @click="detailDialogVisible = false">关 闭</el-button>
 
+          </span>
+        </el-dialog>
+
+        <!-- 审批的对话框 -->
+        <el-dialog
+            title="审批立项信息"
+            :close-on-click-modal="false"
+            :visible.sync="reviewDialogVisible"
+            @close=""
+            width="80%">
+            <!-- 编辑项目的表单 -->
+            <el-form :model="detailForm"
+                     :rules="basicInfoRules"
+                     ref="detailFormRef"
+                     label-width="120px">
+                <!-- prop是验证规则 -->
+                <el-row :gutter="20">
+                    <el-col :span="8">
+                        <el-form-item label="项目编号：" prop="sn">
+                            <el-input v-model="detailForm.sn" :readonly="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="16">
+                        <el-form-item label="项目名称：" prop="name">
+                            <el-input v-model="detailForm.name" :readonly="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="委托方：" prop="principal">
+                    <el-input v-model="detailForm.principal" :readonly="true"></el-input>
+                </el-form-item>
+                <el-form-item label="鉴定对象：" prop="target">
+                    <el-input v-model="detailForm.target" :readonly="true"></el-input>
+                </el-form-item>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item label="委托时间：" prop="trust_date">
+                            <el-date-picker
+                                :readonly="true"
+                                v-model="detailForm.trust_date"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="受理时间：" prop="created_date">
+                            <el-date-picker
+                                :readonly="true"
+                                v-model="detailForm.created_date"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="鉴定机构：" prop="org">
+                    <el-input v-model="detailForm.org_name" :readonly="true"></el-input>
+                </el-form-item>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item label="鉴定类别：" prop="type">
+                            <el-input v-model="detailForm.type_name" :readonly="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="鉴定用途：" prop="purpose">
+                            <el-input v-model="detailForm.purpose_name" :readonly="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="二次鉴定：">
+                    <el-switch
+                        disabled
+                        v-model="detailForm.is_re_appraisal"
+                        active-color="#13ce66"
+                        inactive-color="#ff4949">
+                    </el-switch>
+                </el-form-item>
+                <el-form-item label="委托事项：" prop="trust_detail">
+                    <el-input type="textarea"
+                              :readonly="true"
+                              :autosize="{ minRows: 4, maxRows: 10}"
+                              v-model="detailForm.trust_detail"></el-input>
+                </el-form-item>
+                <el-form-item label="立项审批人：" prop="reviewer">
+                    <el-input v-model="detailForm.reviewer_name" :readonly="true"></el-input>
+                </el-form-item>
+            </el-form>
+            <el-form :model="reviewForm"
+                     :rules="reviewRules"
+                     ref="reviewFormRef"
+                     label-width="120px">
+                <el-form-item label="审批意见" prop="opinion">
+                    <el-input type="textarea"
+                              :autosize="{ minRows: 4, maxRows: 10}"
+                              v-model="reviewForm.opinion">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="审批时间：" prop="created_date">
+                    <el-date-picker
+                        v-model="reviewForm.created_date"
+                        type="date"
+                        placeholder="选择日期"
+                        format="yyyy 年 MM 月 dd 日"
+                        value-format="yyyy-MM-dd">
+                    </el-date-picker>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+            <el-button type="info" @click="reviewDialogVisible = false" style="font-weight: bold">关 闭</el-button>
+            <el-button type="warning" @click="saveReview(3)" style="font-weight: bold">暂 存</el-button>
+            <el-button type="danger" @click="saveReview(2)" style="font-weight: bold">打 回</el-button>
+            <el-button type="primary" @click="saveReview(4)" style="font-weight: bold">通 过</el-button>
           </span>
         </el-dialog>
     </div>
@@ -449,6 +555,7 @@ export default {
     name: "BasicInfos",
     data() {
         return {
+            loginUserID: "",
             // get查询的分页参数，
             queryInfo: {
                 query: "",
@@ -457,12 +564,14 @@ export default {
                 paginator: true,
                 stage: "",
             },
+            userList: [],
             // 项目列表
             basicInfoList: [],
             total: 0,
             addDialogVisible: false,
             editDialogVisible: false,
             detailDialogVisible: false,
+            reviewDialogVisible: false,
             addForm: {
                 sn: "",
                 name: "",
@@ -475,6 +584,7 @@ export default {
                 purpose: "",
                 is_re_appraisal: "false",
                 trust_detail: "",
+                reviewer: "",
                 stage: "",
             },
             editForm: {
@@ -489,6 +599,7 @@ export default {
                 purpose: "",
                 is_re_appraisal: "",
                 trust_detail: "",
+                reviewer: "",
                 stage: ""
             },
             detailForm: {
@@ -502,11 +613,21 @@ export default {
                 type: "",
                 purpose: "",
                 is_re_appraisal: "",
+                reviewer: "",
+                reviewer_name: "",
                 trust_detail: ""
+            },
+            reviewForm: {
+                opinion: "",
+                created_date: "",
+                basicInfo: "",
+                reviewer: "",
+                status: ""
             },
             orgList: [],
             apprType: [],
             apprPurps: [],
+            basicInfoReviews: [],
             basicInfoRules: {
                 sn: [
                     {required: false, message: "请输入项目编号", trigger: "blur"},
@@ -538,7 +659,17 @@ export default {
                 trust_detail: [
                     {required: true, message: "请输入委托事项", trigger: "blur"},
                 ],
-
+                reviewer: [
+                    {required: true, message: "请选择立项审批人", trigger: "blur"},
+                ]
+            },
+            reviewRules: {
+                opinion: [
+                    {required: false, message: "请输入审批意见", trigger: "blur"},
+                ],
+                created_date: [
+                    {required: false, message: "请选择审批日期", trigger: "blur"},
+                ]
             }
         }
     },
@@ -581,6 +712,7 @@ export default {
             this.getApprTypeList()
             this.getApprPurpList()
         },
+
         async saveBasicInfo(stage) {
             this.addForm.stage = stage
             this.$refs.addFormRef.validate(async (valid) => {
@@ -596,6 +728,8 @@ export default {
                 this.getBasicInfoList("0")
             })
         },
+
+
         addDialogClosed() {
             this.$refs.addFormRef.resetFields()
         },
@@ -603,12 +737,15 @@ export default {
         editDialogClosed() {
             // this.$refs.editProjFormRef.resetFields()
         },
+        reviewDialogClosed() {
+            this.$refs.reviewFormRef.resetFields()
+        },
         // 编辑按钮的点击事件
         async showEditDialog(id) {
             this.getOrgList()
             this.getApprTypeList()
             this.getApprPurpList()
-            this.queryInfo.query = "one"
+            // this.queryInfo.query = "one"
             const res = await this.$axios.get("basicinfos/" + id, {
                 params: this.queryInfo
             })
@@ -618,10 +755,11 @@ export default {
             this.editForm = res.data
             this.editDialogVisible = true
         },
+
         // 修改对话框表单的提交事件
         updateBasicInfo(stage) {
             this.editForm.stage = stage
-            this.queryInfo.query = "one"
+            // this.queryInfo.query = "one"
             this.$refs.editFormRef.validate(async (valid) => {
                     if (!valid) {
                         return false
@@ -640,9 +778,93 @@ export default {
                 }
             )
         },
+
+        async showReviewDialog(id) {
+            // this.queryInfo.query = "one"
+            const res = await this.$axios.get("basicinfos/" + id, {
+                params: this.queryInfo
+            })
+            if (res.status !== 200) {
+                this.$message.error("获取项目信息失败")
+            }
+            this.detailForm = res.data
+            // 查看basicinforeviews表中，是否有该项目的记录
+            const reviewsRes = await this.$axios.get("basicinforeviews/", {
+                params: {
+                    basicinfo: this.detailForm.id
+                }
+            })
+            if (reviewsRes.status !== 200) {
+                return this.$message.error("获取审批记录失败")
+            }
+
+            if (reviewsRes.data.results.length !== 0) {     // 有记录，则代表之前审批过
+
+                if (reviewsRes.data.results[0].status === 0) {     // 暂存的记录，带入数据
+                    // 获取最后一次审批记录
+                    this.reviewForm = reviewsRes.data.results[0]
+                }
+            } else {      // 没有记录，那么代表是第一次审批，新建记录。
+                console.log("没有数据")
+            }
+            this.reviewDialogVisible = true
+            await this.getBasicInfoList(0)
+        },
+        // 立项审批
+        async saveReview(stage) {
+            // stage有2（打回）、3（暂存）、4（通过）三种值
+            // status的值代表：0暂存  1打回   2通过
+
+            // 1 - 更新BasicInfo的stage状态
+            // 2 - 新增BasicInfoReviews的记录
+            // TODO: 3 - 新增待办事项和已办事项
+
+            this.$refs.reviewFormRef.validate(async (valid) => {
+                if (!valid) {
+                    this.$message.error("表单验证失败")
+                    return
+                } else {
+                    // 变更basicInfo的stage状态
+                    const projRes = await this.$axios.patch("basicinfos/" + this.detailForm.id + "/",
+                        {
+                            "stage": stage
+                        },
+                        {
+                            params: {
+                                "stage": 0
+                            }
+                        })
+                    if (projRes.status !== 200) {
+                        this.$message.error(projRes.data.msg)
+                    } else {
+                        if (stage === 3) {
+                            this.reviewForm.status = 0
+                        } else if (stage === 2) {
+                            this.reviewForm.status = 2
+                        } else {
+                            this.reviewForm.status = 1
+                        }
+                        this.reviewForm.basicInfo = this.detailForm.id
+                        this.reviewForm.reviewer = this.detailForm.reviewer
+                        // 向basicInfoReviews表中写入数据
+                        const res = await this.$axios.post("basicinforeviews/", this.reviewForm)
+                        if (res.status !== 201) {
+                            this.$message.error(res.data.msg)
+                        } else {
+                            this.$message.success("添加审批记录成功")
+                        }
+                    }
+                    this.reviewDialogVisible = false
+                    this.reviewForm = {}
+                    await this.getBasicInfoList(0)
+
+
+                }
+            })
+        },
         // 通过id删除项目
         async deleteBasicInfo(id) {
-            this.queryInfo.query = "one"
+            // this.queryInfo.query = "one"
             const confirmResult = await this.$confirm('此操作将永久删除该项目, 是否继续?',
                 '提示', {
                     confirmButtonText: '确定',
@@ -663,6 +885,10 @@ export default {
             }
             this.$message.success("删除项目成功")
             this.getBasicInfoList("0")
+        },
+        async getUserList() {
+            const res = await this.$axios.get("users")
+            this.userList = res.data
         },
         showDetailDialog(row) {
             this.detailDialogVisible = true
@@ -691,9 +917,15 @@ export default {
             }
             return ret
         },
+        getLoginUserID() {
+            this.loginUserID = window.localStorage.getItem("id");
+
+        }
     },
     created() {
         this.getBasicInfoList("0")
+        this.getUserList()
+        this.getLoginUserID()
     }
 }
 </script>

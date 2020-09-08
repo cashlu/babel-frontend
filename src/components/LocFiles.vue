@@ -38,7 +38,7 @@
                 <!-- 索引列 -->
                 <el-table-column type="index" label="序号"></el-table-column>
                 <el-table-column
-                    prop="base_info_name"
+                    prop="basic_info_name"
                     label="项目名称"
                     width="180">
                 </el-table-column>
@@ -67,16 +67,19 @@
                         <el-button size="mini"
                                    type="primary"
                                    @click="showUploadDialog(scope.row.id)"
+                                   v-show="scope.row.basic_info_stage === 4"
                                    icon="el-icon-edit">管理扫描件
                         </el-button>
                         <el-button size="mini"
                                    type="primary"
                                    @click="showEditFileDialog(scope.row.id)"
+                                   v-show="scope.row.basic_info_stage === 4"
                                    icon="el-icon-edit">编辑
                         </el-button>
                         <el-button size="mini"
                                    type="danger"
                                    @click="deleteFile(scope.row.id)"
+                                   v-show="scope.row.basic_info_stage === 4"
                                    icon="el-icon-delete">删除
                         </el-button>
                     </template>
@@ -367,9 +370,11 @@ export default {
         }
     },
     methods: {
-        async getBaseInfoList() {
+        async getBasicInfoList() {
             const res = await this.$axios.get("basicinfos/", {
-                params: this.queryInfo
+                params: {
+                    stage: 4
+                }
             })
             if (res.status !== 200) {
                 return this.$message.error("获取项目列表失败")
@@ -533,7 +538,7 @@ export default {
 
     },
     created() {
-        this.getBaseInfoList()
+        this.getBasicInfoList()
         this.getLocaleFileList()
         this.setHeaders()
     }

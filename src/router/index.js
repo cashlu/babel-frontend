@@ -13,6 +13,7 @@ import ApprSample from "../components/ApprSample"
 import AddiFiles from "../components/AddiFiles"
 import Orgs from "../components/Orgs"
 import Devices from "../components/Devices"
+import BasicInfoReviews from "@/components/BasicInfoReviews";
 
 
 Vue.use(VueRouter)
@@ -36,6 +37,7 @@ const routes = [
             {path: '/addifiles', component: AddiFiles},
             {path: '/orgs', component: Orgs},
             {path: '/devices', component: Devices},
+            {path: '/basicinforeviews', component: BasicInfoReviews},
         ]
     },
 ]

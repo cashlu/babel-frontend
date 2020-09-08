@@ -183,8 +183,8 @@
             </el-form>
             <span slot="footer" class="dialog-footer">
             <el-button type="info" @click="addDialogVisible = false" style="font-weight: bold">取 消</el-button>
-            <el-button type="warning" @click="saveApprInfo(3)" style="font-weight: bold">暂 存</el-button>
-            <el-button type="primary" @click="saveApprInfo(4)" style="font-weight: bold">提 交</el-button>
+            <el-button type="warning" @click="saveApprInfo(5)" style="font-weight: bold">暂 存</el-button>
+            <el-button type="primary" @click="saveApprInfo(6)" style="font-weight: bold">提 交</el-button>
           </span>
         </el-dialog>
 
@@ -197,7 +197,7 @@
             <el-form :model="editForm"
                      :rules="apprInfoFormRules"
                      ref="editFormRef"
-                     label-width="100px">
+                     label-width="120px">
                 <!-- prop是验证规则 -->
                 <el-form-item label="项目：" prop="basic_info">
                     <el-input v-model="editForm.basic_info_name" readonly></el-input>
@@ -241,7 +241,6 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-
                 <el-form-item label="鉴定地址" prop="appraisal_address">
                     <el-input v-model="editForm.appraisal_address" placeholder="请输入地址"></el-input>
                 </el-form-item>
@@ -282,8 +281,8 @@
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button type="info" @click="editDialogVisible = false" style="font-weight: bold">取 消</el-button>
-                <el-button type="warning" @click="updateApprInfo(3)" style="font-weight: bold">暂 存</el-button>
-                <el-button type="primary" @click="updateApprInfo(4)" style="font-weight: bold">提 交</el-button>
+                <el-button type="warning" @click="updateApprInfo(5)" style="font-weight: bold">暂 存</el-button>
+                <el-button type="primary" @click="updateApprInfo(6)" style="font-weight: bold">提 交</el-button>
           </span>
         </el-dialog>
 
@@ -382,6 +381,7 @@ export default {
             return callback(new Error("请输入正确的手机号码"))
         }
         return {
+            loginUserID: "",
             // get查询的分页参数
             basicInfoQueryInfo: {
                 query: "",
@@ -641,7 +641,7 @@ export default {
             // 重置basic_info的stage
             const projRes = await this.$axios.patch("basicinfos/" + row.basic_info + "/",
                 {
-                    "stage": 2
+                    "stage": 4
                 },
                 {
                     params: {query: "one"}
@@ -657,12 +657,17 @@ export default {
                 const res = await this.$axios.get("users/" + ids[i])
                 this.apprTeamList.push(res.data.name)
             }
+        },
+        // 获取当前登录用户的ID
+        getLoginUserID() {
+            this.loginUserID = window.localStorage.getItem("id");
         }
     },
     created() {
         this.getApprInfoList()
         // this.getBasicInfoList("0")
         this.getUserList()
+        this.getLoginUserID();
     }
 }
 </script>
