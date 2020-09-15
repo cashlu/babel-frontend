@@ -262,20 +262,17 @@ export default {
                     }
                 }]
             },
-
         }
     },
     methods: {
         async getApprSampleList() {
-            const res = await this.$axios.get("apprsamps/", {
-                params: this.queryInfo
-            })
+            const res = await this.$axios.get("apprsamps/")
             if (res.status !== 200) {
-                return this.$message.error("获取检材列表失败，请联系管理员")
+                return this.$message.error("获取检材列表失败")
             }
-            this.apprSampleList = res.data.results
+            this.apprSampleList = res.data
             this.total = res.data.count
-            console.log(this.apprSampleList);
+            console.log(res.data);
         },
         async getBasicInfoList() {
             const res = await this.$axios.get("basicinfos/", {

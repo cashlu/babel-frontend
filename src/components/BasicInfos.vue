@@ -72,6 +72,13 @@
                                    v-show="scope.row.reviewer === parseInt(loginUserID) && (scope.row.stage === '2' || scope.row.stage === '3')"
                                    icon="el-icon-s-check">审批
                         </el-button>
+                        <!-- FIXME: 判断依据要改-->
+                        <el-button size="mini"
+                                   type="primary"
+                                   @click="toProofread(scope.row.id)"
+                                   v-show="scope.row.proofreader === parseInt(loginUserID)  && (scope.row.stage === '6' || scope.row.stage === '7')"
+                                   icon="el-icon-delete">校对
+                        </el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -435,7 +442,7 @@
             title="审批立项信息"
             :close-on-click-modal="false"
             :visible.sync="reviewDialogVisible"
-            @close=""
+            @close="reviewDialogClosed"
             width="80%">
             <!-- 编辑项目的表单 -->
             <el-form :model="detailForm"
@@ -524,13 +531,13 @@
                      :rules="reviewRules"
                      ref="reviewFormRef"
                      label-width="120px">
-                <el-form-item label="审批意见" prop="opinion">
+                <el-form-item label="审批意见" prop="opinion" required>
                     <el-input type="textarea"
                               :autosize="{ minRows: 4, maxRows: 10}"
                               v-model="reviewForm.opinion">
                     </el-input>
                 </el-form-item>
-                <el-form-item label="审批时间：" prop="created_date">
+                <el-form-item label="审批时间：" prop="created_date" required>
                     <el-date-picker
                         v-model="reviewForm.created_date"
                         type="date"
@@ -543,7 +550,7 @@
             <span slot="footer" class="dialog-footer">
             <el-button type="info" @click="reviewDialogVisible = false" style="font-weight: bold">关 闭</el-button>
             <el-button type="warning" @click="saveReview(3)" style="font-weight: bold">暂 存</el-button>
-            <el-button type="danger" @click="saveReview(2)" style="font-weight: bold">打 回</el-button>
+            <el-button type="danger" @click="saveReview(1)" style="font-weight: bold">打 回</el-button>
             <el-button type="primary" @click="saveReview(4)" style="font-weight: bold">通 过</el-button>
           </span>
         </el-dialog>
@@ -622,12 +629,13 @@ export default {
                 created_date: "",
                 basicInfo: "",
                 reviewer: "",
-                status: ""
+                status: "",
+                type: "",
             },
             orgList: [],
             apprType: [],
             apprPurps: [],
-            basicInfoReviews: [],
+            checkRecordReviews: [],
             basicInfoRules: {
                 sn: [
                     {required: false, message: "请输入项目编号", trigger: "blur"},
@@ -725,7 +733,7 @@ export default {
                 }
                 this.$message.success("创建项目成功")
                 this.addDialogVisible = false
-                this.getBasicInfoList("0")
+                this.getBasicInfoList()
             })
         },
 
@@ -742,9 +750,9 @@ export default {
         },
         // 编辑按钮的点击事件
         async showEditDialog(id) {
-            this.getOrgList()
-            this.getApprTypeList()
-            this.getApprPurpList()
+            await this.getOrgList()
+            await this.getApprTypeList()
+            await this.getApprPurpList()
             // this.queryInfo.query = "one"
             const res = await this.$axios.get("basicinfos/" + id, {
                 params: this.queryInfo
@@ -772,7 +780,7 @@ export default {
                             this.$message.error(res.data.msg)
                         }
                         this.editDialogVisible = false
-                        this.getBasicInfoList('0')
+                        this.getBasicInfoList()
                         this.$message.success("编辑成功")
                     }
                 }
@@ -780,7 +788,6 @@ export default {
         },
 
         async showReviewDialog(id) {
-            // this.queryInfo.query = "one"
             const res = await this.$axios.get("basicinfos/" + id, {
                 params: this.queryInfo
             })
@@ -788,8 +795,8 @@ export default {
                 this.$message.error("获取项目信息失败")
             }
             this.detailForm = res.data
-            // 查看basicinforeviews表中，是否有该项目的记录
-            const reviewsRes = await this.$axios.get("basicinforeviews/", {
+            // 查看checkRecord表中，是否有该项目的记录
+            const reviewsRes = await this.$axios.get("checkrecords/", {
                 params: {
                     basicinfo: this.detailForm.id
                 }
@@ -808,15 +815,12 @@ export default {
                 console.log("没有数据")
             }
             this.reviewDialogVisible = true
-            await this.getBasicInfoList(0)
+            await this.getBasicInfoList()
         },
         // 立项审批
         async saveReview(stage) {
-            // stage有2（打回）、3（暂存）、4（通过）三种值
-            // status的值代表：0暂存  1打回   2通过
-
             // 1 - 更新BasicInfo的stage状态
-            // 2 - 新增BasicInfoReviews的记录
+            // 2 - 新增CheckRecord的记录
             // TODO: 3 - 新增待办事项和已办事项
 
             this.$refs.reviewFormRef.validate(async (valid) => {
@@ -828,26 +832,22 @@ export default {
                     const projRes = await this.$axios.patch("basicinfos/" + this.detailForm.id + "/",
                         {
                             "stage": stage
-                        },
-                        {
-                            params: {
-                                "stage": 0
-                            }
                         })
                     if (projRes.status !== 200) {
                         this.$message.error(projRes.data.msg)
                     } else {
                         if (stage === 3) {
-                            this.reviewForm.status = 0
-                        } else if (stage === 2) {
-                            this.reviewForm.status = 2
+                            this.reviewForm.status = 0      // 暂存
+                        } else if (stage === 1) {
+                            this.reviewForm.status = 2      // 打回
                         } else {
-                            this.reviewForm.status = 1
+                            this.reviewForm.status = 1      // 提交
                         }
                         this.reviewForm.basicInfo = this.detailForm.id
                         this.reviewForm.reviewer = this.detailForm.reviewer
-                        // 向basicInfoReviews表中写入数据
-                        const res = await this.$axios.post("basicinforeviews/", this.reviewForm)
+                        this.reviewForm.type = "r"
+                        // 向checkRecord表中写入数据
+                        const res = await this.$axios.post("checkrecords/", this.reviewForm)
                         if (res.status !== 201) {
                             this.$message.error(res.data.msg)
                         } else {
@@ -856,9 +856,7 @@ export default {
                     }
                     this.reviewDialogVisible = false
                     this.reviewForm = {}
-                    await this.getBasicInfoList(0)
-
-
+                    await this.getBasicInfoList()
                 }
             })
         },
@@ -884,7 +882,7 @@ export default {
                 return this.$message.error("删除项目失败")
             }
             this.$message.success("删除项目成功")
-            this.getBasicInfoList("0")
+            this.getBasicInfoList()
         },
         async getUserList() {
             const res = await this.$axios.get("users")
@@ -897,15 +895,16 @@ export default {
         detailDialogClosed() {
             this.detailDialogVisible = false
         },
+
         // 分页器size变化的监听事件
         handleSizeChange(size) {
             this.queryInfo.size = size
-            this.getBasicInfoList("0")
+            this.getBasicInfoList()
         },
         // 分页器page变化的监听事件
         handleCurrentChange(page) {
             this.queryInfo.page = page
-            this.getBasicInfoList("0")
+            this.getBasicInfoList()
         },
         // 用于table中展示是否归还的字段，element的table默认不直接显示布尔值
         formatBoolean: function (row, column, cellValue) {
@@ -919,11 +918,22 @@ export default {
         },
         getLoginUserID() {
             this.loginUserID = window.localStorage.getItem("id");
+        },
+        // 校对
+        async proofread(row) {
+            // TODO: 校对的具体代码
 
+        },
+
+        // 进入校对页面
+        toProofread(id) {
+            this.$router.push({
+                path: '/proofread/' + id
+            })
         }
     },
     created() {
-        this.getBasicInfoList("0")
+        this.getBasicInfoList()
         this.getUserList()
         this.getLoginUserID()
     }

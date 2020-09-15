@@ -49,14 +49,16 @@
                 </el-table-column>
                 <el-table-column
                     prop="created_date"
+                    min-width="100"
                     label="接收时间">
                 </el-table-column>
                 <el-table-column
                     prop="comment"
+                    min-width="250"
                     label="备注说明">
                 </el-table-column>
                 <!-- 操作按钮列 -->
-                <el-table-column label="操作" width="550px">
+                <el-table-column label="操作" width="400px">
                     <template v-slot="scope">
                         <!-- 如果要使用作用域插槽的话，那么使用的元素必须包裹在template中。 -->
                         <el-button size="mini"

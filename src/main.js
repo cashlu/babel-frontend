@@ -8,6 +8,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 import './plugins/element'
 import './assets/css/global.css'
 
+
 Vue.config.productionTip = false
 
 //设置axios为form-data

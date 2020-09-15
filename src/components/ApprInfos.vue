@@ -561,7 +561,7 @@ export default {
                 this.transferUserList.push(user)
             }
         },
-        saveApprInfo(stage) {   //stage=3暂存   4提交
+        saveApprInfo(stage) {   //stage=5暂存   6提交
             this.$refs.addFormRef.validate(async (valid) => {
                 if (!valid) {
                     this.$message.error("表单验证失败")
@@ -576,18 +576,12 @@ export default {
                     + this.addForm.basic_info + "/",
                     {
                         "stage": stage
-                    },
-                    {
-                        params: {
-                            stage: 0
-                        }
-                    }
-                )
+                    })
                 if (projRes.status !== 200) {
                     this.$message.error("重置状态失败")
                 }
                 this.addDialogVisible = false
-                this.getApprInfoList()
+                await this.getApprInfoList()
                 // this.getBasicInfoList("1")
                 this.$message.success("添加鉴定信息成功")
             })
@@ -608,18 +602,12 @@ export default {
                     this.editForm.basic_info + "/",
                     {
                         "stage": stage
-                    },
-                    {
-                        params: {
-                            stage: 0
-                        }
-                    }
-                )
+                    })
                 if (projRes.status !== 200) {
                     this.$message.error("重置状态失败")
                 }
                 this.editDialogVisible = false
-                this.getApprInfoList()
+                await this.getApprInfoList()
                 // this.getBasicInfoList("0")
                 this.$message.success("添加鉴定信息成功")
             })
@@ -667,7 +655,9 @@ export default {
         // 获取当前登录用户的ID
         getLoginUserID() {
             this.loginUserID = window.localStorage.getItem("id");
-        }
+        },
+
+
     },
     created() {
         this.getApprInfoList()
