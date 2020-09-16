@@ -133,8 +133,8 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="复核人" prop="reviewer">
-                    <el-select v-model="addForm.reviewer" placeholder="请选择">
+                <el-form-item label="复核人" prop="final_reviewer">
+                    <el-select v-model="addForm.final_reviewer" placeholder="请选择">
                         <el-option
                             v-for="item in userList"
                             :key="item.id"
@@ -232,8 +232,8 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="复核人" prop="reviewer">
-                    <el-select v-model="editForm.reviewer" placeholder="请选择">
+                <el-form-item label="复核人" prop="final_reviewer">
+                    <el-select v-model="editForm.final_reviewer" placeholder="请选择">
                         <el-option
                             v-for="item in userList"
                             :key="item.id"
@@ -316,8 +316,8 @@
                 <el-form-item label="校对人" prop="proofreader">
                     <el-input v-model="detailForm.proofreader_name" :readonly="true"></el-input>
                 </el-form-item>
-                <el-form-item label="复核人" prop="reviewer">
-                    <el-input v-model="detailForm.reviewer_name" :readonly="true"></el-input>
+                <el-form-item label="复核人" prop="final_reviewer">
+                    <el-input v-model="detailForm.final_reviewer_name" :readonly="true"></el-input>
                 </el-form-item>
                 <el-form-item label="鉴定地址" prop="appraisal_address">
                     <el-input v-model="detailForm.appraisal_address" :readonly="true"></el-input>
@@ -407,7 +407,8 @@ export default {
             addForm: {
                 basic_info: "",
                 appraisal_team: [],
-                reviewer: "",
+                final_reviewer: "",
+                final_reviewer_name: "",
                 archivist: "",
                 proofreader: "",
                 appraisal_address: "",
@@ -422,7 +423,8 @@ export default {
                 basic_info: "",
                 basic_info_name: "",
                 appraisal_team: [],
-                reviewer: "",
+                final_reviewer: "",
+                final_reviewer_name: "",
                 archivist: "",
                 proofreader: "",
                 appraisal_address: "",
@@ -436,7 +438,8 @@ export default {
             detailForm: {
                 basic_info: "",
                 appraisal_team: [],
-                reviewer: "",
+                final_reviewer: "",
+                final_reviewer_name: "",
                 archivist: "",
                 proofreader: "",
                 appraisal_address: "",
@@ -472,7 +475,7 @@ export default {
                 opinion: [
                     {required: true, message: "请输入鉴定意见", trigger: "blur"},
                 ],
-                reviewer: [
+                final_reviewer: [
                     {required: true, message: "请选择复核人", trigger: "blur"},
                 ],
                 archivist: [

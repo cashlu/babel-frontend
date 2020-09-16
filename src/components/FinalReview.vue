@@ -1,12 +1,11 @@
 <template>
-    <div id="proofread">
-        <!-- 项目ID：{{this.$route.params.id}}-->
+    <div id="finalreview">
         <!--  卡片区-->
         <el-card class="box-card">
-            <h1>项目信息校对</h1>
+            <h1>终审</h1>
             <el-tabs type="border-card">
                 <el-tab-pane label="基础信息">
-                    <!-- 编辑项目的表单 -->
+                    <!-- 项目基础信息表单 -->
                     <el-form :model="basicInfo"
                              label-width="120px">
                         <!-- prop是验证规则 -->
@@ -263,19 +262,19 @@
         <br>
         <!-- 校对表单 -->
         <el-card class="box-card">
-            <el-form :model="proofreadForm"
-                     :rules="proofreadRules"
-                     ref="proofreadFormRef"
+            <el-form :model="finalReviewForm"
+                     :rules="finalReviewRules"
+                     ref="finalReviewFormRef"
                      label-width="120px">
                 <el-form-item label="校对意见" prop="opinion" required>
                     <el-input type="textarea"
                               :autosize="{ minRows: 4, maxRows: 10}"
-                              v-model="proofreadForm.opinion">
+                              v-model="finalReviewForm.opinion">
                     </el-input>
                 </el-form-item>
                 <el-form-item label="校对时间：" prop="created_date" required>
                     <el-date-picker
-                        v-model="proofreadForm.created_date"
+                        v-model="finalReviewForm.created_date"
                         type="date"
                         placeholder="校对日期"
                         format="yyyy 年 MM 月 dd 日"
@@ -284,9 +283,9 @@
                 </el-form-item>
             </el-form>
 
-            <el-button type="warning" @click="saveProofread(7)" style="font-weight: bold">暂 存</el-button>
-            <el-button type="danger" @click="saveProofread(5)" style="font-weight: bold">打 回</el-button>
-            <el-button type="primary" @click="saveProofread(8)" style="font-weight: bold">通 过</el-button>
+            <el-button type="warning" @click="saveFinalReview(9)" style="font-weight: bold">暂 存</el-button>
+            <el-button type="danger" @click="saveFinalReview(7)" style="font-weight: bold">打 回</el-button>
+            <el-button type="primary" @click="saveFinalReview(10)" style="font-weight: bold">通 过</el-button>
         </el-card>
 
         <!-- 查看材料详情的对话框  -->
@@ -336,7 +335,7 @@
                     <span>扫描件</span>
                 </div>
                 <div class="demo-image__lazy">
-                    <el-image v-for="url in pics" :key="url" :src="url" lazy></el-image>
+                    <el-image v-for="url in pics" :key="url" :src="url"></el-image>
                 </div>
             </el-card>
 
@@ -420,7 +419,7 @@
                     <span>扫描件</span>
                 </div>
                 <div class="demo-image__lazy">
-                    <el-image v-for="url in pics" :key="url" :src="url" lazy></el-image>
+                    <el-image v-for="url in pics" :key="url" :src="url"></el-image>
                 </div>
             </el-card>
             <span slot="footer" class="dialog-footer">
@@ -432,7 +431,7 @@
 
 <script>
 export default {
-    name: "Proofread",
+    name: "FinalReview",
     data() {
         return {
             basicInfo: {},
@@ -440,7 +439,7 @@ export default {
             apprInfoForm: {},
             transferUserList: [],
             total: "",
-            proofreadForm: {},
+            finalReviewForm: {},
             showApprFileForm: {},
             pics: [],
             showApprFileDialogVisible: false,
@@ -450,12 +449,12 @@ export default {
             showLocFileDialogVisible: false,
             showLocFileForm: {},
             apprSampleList: [],
-            proofreadRules: {
+            finalReviewRules: {
                 opinion: [
-                    {required: false, message: "请输入校对意见", trigger: "blur"},
+                    {required: false, message: "请输入终审意见", trigger: "blur"},
                 ],
                 name: [
-                    {required: true, message: "请选择校对日期", trigger: "blur"},
+                    {required: true, message: "请选择终审日期", trigger: "blur"},
                 ],
             }
         }
@@ -549,7 +548,7 @@ export default {
             if (res.status !== 200) {
                 return this.$message.error("获取检材列表失败")
             }
-            this.apprSampleList = res.data.results
+            this.apprSampleList = res.data
         },
         async getApprInfo(id) {
             const res = await this.$axios.get("apprinfos/?id=" + id)
@@ -585,9 +584,9 @@ export default {
             }
         },
 
-        // 校对
-        async saveProofread(stage) {
-            this.$refs.proofreadFormRef.validate(async (valid) => {
+        // 终审
+        async saveFinalReview(stage) {
+            this.$refs.finalReviewFormRef.validate(async (valid) => {
                 if (!valid) {
                     this.$message.error("表单验证失败")
                     return
@@ -600,18 +599,18 @@ export default {
                     if (projRes.status !== 200) {
                         this.$message.error(projRes.data.msg)
                     } else {    // 成功
-                        if (stage === 7) {
-                            this.proofreadForm.status = 0
-                        } else if (stage === 5) {
-                            this.proofreadForm.status = 2
+                        if (stage === 9) {
+                            this.finalReviewForm.status = 0
+                        } else if (stage === 7) {
+                            this.finalReviewForm.status = 2
                         } else {
-                            this.proofreadForm.status = 1
+                            this.finalReviewForm.status = 1
                         }
-                        this.proofreadForm.basicInfo = this.$route.params.id
-                        this.proofreadForm.reviewer = window.localStorage.getItem("id")
-                        this.proofreadForm.type = "p"
+                        this.finalReviewForm.basicInfo = this.$route.params.id
+                        this.finalReviewForm.reviewer = window.localStorage.getItem("id")
+                        this.finalReviewForm.type = "f"
                         // 向checkRecord表中写入数据
-                        const res = await this.$axios.post("checkrecords/", this.proofreadForm)
+                        const res = await this.$axios.post("checkrecords/", this.finalReviewForm)
                         if (res.status !== 201) {
                             this.$message.error(res.data.msg)
                         } else {
@@ -625,11 +624,10 @@ export default {
 
         // 获取暂存的信息
         async getCheckRecord(basicInfoID) {
-            const res = await this.$axios.get("checkrecords/?type=p&id=" + basicInfoID)
-            console.log(res.data.results[0]);
+            const res = await this.$axios.get("checkrecords/?type=f&id=" + basicInfoID)
             if (res.data.results.length !== 0) {
                 if (res.data.results[0].status === 0) {
-                    this.proofreadForm = res.data.results[0]
+                    this.finalReviewForm = res.data.results[0]
                 }
             } else {
                 console.log("没有数据")

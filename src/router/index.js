@@ -15,7 +15,7 @@ import Orgs from "../components/Orgs"
 import Devices from "../components/Devices"
 import BasicInfoReviews from "@/components/BasicInfoReviews";
 import Proofread from "@/components/Proofread";
-
+import FinalReview from "@/components/FinalReview";
 
 Vue.use(VueRouter)
 
@@ -40,6 +40,7 @@ const routes = [
             {path: '/devices', component: Devices},
             {path: '/basicinforeviews', component: BasicInfoReviews},
             {path: '/proofread/:id', component: Proofread},
+            {path: '/finalreview/:id', component: FinalReview},
         ]
     },
 ]

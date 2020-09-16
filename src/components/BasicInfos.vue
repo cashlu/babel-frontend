@@ -46,7 +46,7 @@
                         <el-tag class="finish-tag" effect="plain" v-else type="danger">未完结</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column min-width="180px" label="操作">
+                <el-table-column min-width="250px" label="操作">
                     <template v-slot="scope">
                         <!-- 如果要使用作用域插槽的话，那么使用的元素必须包裹在template中。 -->
                         <el-button size="mini"
@@ -70,14 +70,19 @@
                                    type="primary"
                                    @click="showReviewDialog(scope.row.id)"
                                    v-show="scope.row.reviewer === parseInt(loginUserID) && (scope.row.stage === '2' || scope.row.stage === '3')"
-                                   icon="el-icon-s-check">审批
+                                   icon="el-icon-s-check">初审
                         </el-button>
-                        <!-- FIXME: 判断依据要改-->
                         <el-button size="mini"
                                    type="primary"
                                    @click="toProofread(scope.row.id)"
                                    v-show="scope.row.proofreader === parseInt(loginUserID)  && (scope.row.stage === '6' || scope.row.stage === '7')"
                                    icon="el-icon-delete">校对
+                        </el-button>
+                        <el-button size="mini"
+                                   type="success"
+                                   @click="toFinalReview(scope.row.id)"
+                                   v-show="scope.row.final_reviewer === parseInt(loginUserID)  && (scope.row.stage === '8' || scope.row.stage === '9')"
+                                   icon="el-icon-delete">终审
                         </el-button>
                     </template>
                 </el-table-column>
@@ -592,6 +597,7 @@ export default {
                 is_re_appraisal: "false",
                 trust_detail: "",
                 reviewer: "",
+                final_reviewer: "",
                 stage: "",
             },
             editForm: {
@@ -607,6 +613,7 @@ export default {
                 is_re_appraisal: "",
                 trust_detail: "",
                 reviewer: "",
+                final_reviewer: "",
                 stage: ""
             },
             detailForm: {
@@ -622,6 +629,8 @@ export default {
                 is_re_appraisal: "",
                 reviewer: "",
                 reviewer_name: "",
+                final_reviewer: "",
+                final_reviewer_name: "",
                 trust_detail: ""
             },
             reviewForm: {
@@ -796,26 +805,38 @@ export default {
             }
             this.detailForm = res.data
             // 查看checkRecord表中，是否有该项目的记录
-            const reviewsRes = await this.$axios.get("checkrecords/", {
-                params: {
-                    basicinfo: this.detailForm.id
-                }
-            })
-            if (reviewsRes.status !== 200) {
-                return this.$message.error("获取审批记录失败")
-            }
-
-            if (reviewsRes.data.results.length !== 0) {     // 有记录，则代表之前审批过
-
-                if (reviewsRes.data.results[0].status === 0) {     // 暂存的记录，带入数据
-                    // 获取最后一次审批记录
-                    this.reviewForm = reviewsRes.data.results[0]
-                }
-            } else {      // 没有记录，那么代表是第一次审批，新建记录。
-                console.log("没有数据")
-            }
+            // const reviewsRes = await this.$axios.get("checkrecords/", {
+            //     params: {
+            //         basicinfo: this.detailForm.id
+            //     }
+            // })
+            // if (reviewsRes.status !== 200) {
+            //     return this.$message.error("获取审批记录失败")
+            // }
+            //
+            // if (reviewsRes.data.results.length !== 0) {     // 有记录，则代表之前审批过
+            //
+            //     if (reviewsRes.data.results[0].status === 0) {     // 暂存的记录，带入数据
+            //         // 获取最后一次审批记录
+            //         this.reviewForm = reviewsRes.data.results[0]
+            //     }
+            // } else {      // 没有记录，那么代表是第一次审批，新建记录。
+            //     console.log("没有数据")
+            // }
+            await this.getCheckRecord(this.detailForm.id)
             this.reviewDialogVisible = true
             await this.getBasicInfoList()
+        },
+        // 获取暂存的信息
+        async getCheckRecord(basicInfoID) {
+            const res = await this.$axios.get("checkrecords/?type=r&id=" + basicInfoID)
+            if (res.data.results.length !== 0) {
+                if (res.data.results[0].status === 0) {
+                    this.reviewForm = res.data.results[0]
+                }
+            } else {
+                console.log("没有数据")
+            }
         },
         // 立项审批
         async saveReview(stage) {
@@ -919,16 +940,18 @@ export default {
         getLoginUserID() {
             this.loginUserID = window.localStorage.getItem("id");
         },
-        // 校对
-        async proofread(row) {
-            // TODO: 校对的具体代码
-
-        },
 
         // 进入校对页面
         toProofread(id) {
             this.$router.push({
                 path: '/proofread/' + id
+            })
+        },
+
+        // 进入终审页面
+        toFinalReview(id) {
+            this.$router.push({
+                path: "finalreview/" + id
             })
         }
     },
