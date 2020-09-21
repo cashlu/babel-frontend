@@ -1,5 +1,5 @@
 <template>
-    <div id="BasicInfoReviews">
+    <div id="CheckRecord">
         <!--面包屑-->
         <el-breadcrumb separator-class="el-icon-arrow-right">
             <el-breadcrumb-item :to="{path: '/home'}">首页</el-breadcrumb-item>
@@ -10,7 +10,7 @@
         <el-card class="box-card">
             <!-- 项目列表 -->
             <el-table
-                :data="basicInfoReviews"
+                :data="checkRecords"
                 style="width: 100%">
                 <!-- 索引列 -->
                 <el-table-column type="index" label="序号"></el-table-column>
@@ -116,7 +116,7 @@
 
 <script>
 export default {
-    name: "BasicInfoReviews",
+    name: "CheckRecord",
     data() {
         return {
             queryInfo: {
@@ -126,7 +126,7 @@ export default {
                 stage: "",
                 paginator: false,
             },
-            basicInfoReviews: [],
+            checkRecords: [],
             total: 0,
             reviewDetailDialogVisible: false,
             detailForm: {}
@@ -134,15 +134,15 @@ export default {
     },
     methods: {
         async getBasicInfoReviews() {
-            const res = await this.$axios.get("basicinforeviews/", {
+            const res = await this.$axios.get("checkrecords/", {
                 params: this.queryInfo
             });
             if (res.status !== 200) {
                 return this.$message.error("获取审批记录失败")
             }
-            this.basicInfoReviews = res.data.results
+            this.checkRecords = res.data.results
             this.total = res.data.count
-            console.log(this.basicInfoReviews);
+            console.log(this.checkRecords);
         },
         // 分页器size变化的监听事件
         handleSizeChange(size) {

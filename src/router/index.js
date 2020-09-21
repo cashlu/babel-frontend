@@ -13,7 +13,7 @@ import ApprSample from "../components/ApprSample"
 import AddiFiles from "../components/AddiFiles"
 import Orgs from "../components/Orgs"
 import Devices from "../components/Devices"
-import BasicInfoReviews from "@/components/BasicInfoReviews";
+import CheckRecord from "@/components/CheckRecord";
 import Proofread from "@/components/Proofread";
 import FinalReview from "@/components/FinalReview";
 
@@ -38,7 +38,7 @@ const routes = [
             {path: '/addifiles', component: AddiFiles},
             {path: '/orgs', component: Orgs},
             {path: '/devices', component: Devices},
-            {path: '/basicinforeviews', component: BasicInfoReviews},
+            {path: '/checkrecords', component: CheckRecord},
             {path: '/proofread/:id', component: Proofread},
             {path: '/finalreview/:id', component: FinalReview},
         ]

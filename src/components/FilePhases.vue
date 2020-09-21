@@ -301,7 +301,9 @@
             },
             async getBasicInfoList() {
                 const res = await this.$axios.get("basicinfos/", {
-                    params: this.queryInfo
+                    params: {
+                        stage: 10
+                    }
                 })
                 if (res.status !== 200) {
                     return this.$message.error("获取项目列表失败")
@@ -351,7 +353,7 @@
                     const projRes = await this.$axios.patch("basicinfos/" +
                         this.filePhaseForm.basic_info + "/",
                         {
-                            "stage": 3
+                            "stage": 11
                         }
                     )
                     if (projRes.status !== 200) {
@@ -359,6 +361,7 @@
                     }
                     this.addDialogVisible = false
                     this.getFileList()
+                    this.getBasicInfoList()
                 })
             },
             async showEditDialog(id) {
