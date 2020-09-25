@@ -635,7 +635,7 @@ export default {
         }
     },
     created() {
-        this.getBasicInfo(this.$route.params.id)
+        this.getBasicInfo(this.$route.params.id);
         this.getApprFileList(this.$route.params.id)
         this.getLocaleFileList(this.$route.params.id)
         this.getApprSampleList(this.$route.params.id)

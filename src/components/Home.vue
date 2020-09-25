@@ -90,11 +90,10 @@
                 this.$router.push("/login")
             },
             async getMenuList() {
-                const {data: res} = await this.$axios.get("menus")
+                const res = await this.$axios.get("menus")
                 if (res.status !== 200) {
                     return this.$message.error("获取菜单失败")
                 }
-                // this.$message.success("menu success")
                 this.menuList = res.data
             },
 

@@ -55,15 +55,18 @@
                                    icon="el-icon-edit">查看
                         </el-button>
                         <!-- 判断stage，如果该项目不是立项中阶段（1），则不能修改-->
+                        <!-- TODO: 删除、编辑等按钮的显示逻辑，例如归属人才能删除 -->
                         <el-button size="mini"
                                    type="warning"
                                    @click="showEditDialog(scope.row.id)"
-                                   v-show="scope.row.stage === '1'"
+                                   v-show="scope.row.stage === '1' && scope.row.creator === parseInt(loginUserID)"
                                    icon="el-icon-edit">编辑
                         </el-button>
+
                         <el-button size="mini"
                                    type="danger"
                                    @click="deleteBasicInfo(scope.row.id)"
+                                   v-show="scope.row.creator === parseInt(loginUserID)"
                                    icon="el-icon-delete">删除
                         </el-button>
                         <el-button size="mini"
@@ -223,7 +226,6 @@
             </span>
         </el-dialog>
 
-
         <!-- 编辑项目的对话框 -->
         <el-dialog
             title="修改项目基础信息"
@@ -345,7 +347,6 @@
           </span>
         </el-dialog>
 
-
         <!-- 查看项目的对话框 -->
         <el-dialog
             title="查看项目基础信息"
@@ -447,9 +448,8 @@
             title="审批立项信息"
             :close-on-click-modal="false"
             :visible.sync="reviewDialogVisible"
-            @close="reviewDialogClosed"
             width="80%">
-            <!-- 编辑项目的表单 -->
+            <!-- 审批对话框中项目详情的表单 -->
             <el-form :model="detailForm"
                      :rules="basicInfoRules"
                      ref="detailFormRef"
@@ -532,39 +532,72 @@
                     <el-input v-model="detailForm.reviewer_name" :readonly="true"></el-input>
                 </el-form-item>
             </el-form>
-            <el-form :model="reviewForm"
-                     :rules="reviewRules"
-                     ref="reviewFormRef"
-                     label-width="120px">
-                <el-form-item label="审批意见" prop="opinion" required>
-                    <el-input type="textarea"
-                              :autosize="{ minRows: 4, maxRows: 10}"
-                              v-model="reviewForm.opinion">
-                    </el-input>
-                </el-form-item>
-                <el-form-item label="审批时间：" prop="created_date" required>
-                    <el-date-picker
-                        v-model="reviewForm.created_date"
-                        type="date"
-                        placeholder="选择日期"
-                        format="yyyy 年 MM 月 dd 日"
-                        value-format="yyyy-MM-dd">
-                    </el-date-picker>
-                </el-form-item>
-            </el-form>
-            <span slot="footer" class="dialog-footer">
-            <el-button type="info" @click="reviewDialogVisible = false" style="font-weight: bold">关 闭</el-button>
-            <el-button type="warning" @click="saveReview(3)" style="font-weight: bold">暂 存</el-button>
-            <el-button type="danger" @click="saveReview(1)" style="font-weight: bold">打 回</el-button>
-            <el-button type="primary" @click="saveReview(4)" style="font-weight: bold">通 过</el-button>
-          </span>
+            <el-divider></el-divider>
+
+            <!-- 审批链 -->
+            <!-- 子组件包裹在v-if内，是为了每次打开时，都执行created -->
+            <el-card class="box-card" v-if="reviewDialogVisible">
+                <review-chain :basicInfoId="detailForm.id"></review-chain>
+            </el-card>
+
+            <el-divider></el-divider>
+
+            <!--审批表单-->
+            <el-card v-if="reviewDialogVisible">
+                <!-- 注意：reviewType没有冒号 -->
+                <review-form @closeDialog="closeDialog"
+                             @getBasicInfoList="getBasicInfoList"
+                             reviewType="r"
+                             lastStage="1"
+                             nextStage="4"
+                             lastTodoType="1"
+                             nextTodoType="2"
+                             :lastUser="detailForm.creator"
+                             :nextUser="detailForm.reviewer"
+                             :basicInfoId="detailForm.id">
+                </review-form>
+            </el-card>
+
+            <!--            <el-form :model="reviewForm"-->
+            <!--                     :rules="reviewRules"-->
+            <!--                     ref="reviewFormRef"-->
+            <!--                     label-width="120px">-->
+            <!--                <el-form-item label="审批意见" prop="opinion" required>-->
+            <!--                    <el-input type="textarea"-->
+            <!--                              :autosize="{ minRows: 4, maxRows: 10}"-->
+            <!--                              v-model="reviewForm.opinion">-->
+            <!--                    </el-input>-->
+            <!--                </el-form-item>-->
+            <!--                <el-form-item label="审批时间：" prop="created_date" required>-->
+            <!--                    <el-date-picker-->
+            <!--                        v-model="reviewForm.created_date"-->
+            <!--                        type="date"-->
+            <!--                        placeholder="选择日期"-->
+            <!--                        format="yyyy 年 MM 月 dd 日"-->
+            <!--                        value-format="yyyy-MM-dd">-->
+            <!--                    </el-date-picker>-->
+            <!--                </el-form-item>-->
+            <!--            </el-form>-->
+
+            <!--            <span slot="footer" class="dialog-footer">-->
+            <!--                <el-button type="info" @click="reviewDialogVisible = false" style="font-weight: bold">关 闭</el-button>-->
+            <!--                <el-button type="warning" @click="saveReview(3)" style="font-weight: bold">暂 存</el-button>-->
+            <!--                <el-button type="danger" @click="saveReview(1)" style="font-weight: bold">打 回</el-button>-->
+            <!--                <el-button type="primary" @click="saveReview(4)" style="font-weight: bold">通 过</el-button>-->
+            <!--            </span>-->
+
         </el-dialog>
+
     </div>
 </template>
 
 <script>
+import ReviewForm from "@/components/ReviewForm";
+import ReviewChain from "@/components/ReviewChain";
+
 export default {
     name: "BasicInfos",
+    components: {ReviewChain, ReviewForm},
     data() {
         return {
             loginUserID: "",
@@ -698,6 +731,7 @@ export default {
             }
             this.orgList = res.data
         },
+
         async getApprTypeList() {
             const res = await this.$axios.get("apprtypes")
             if (res.status !== 200) {
@@ -705,6 +739,7 @@ export default {
             }
             this.apprType = res.data
         },
+
         async getApprPurpList() {
             const res = await this.$axios.get("apprpurps")
             if (res.status !== 200) {
@@ -712,6 +747,7 @@ export default {
             }
             this.apprPurps = res.data
         },
+
         async getBasicInfoList(stage) {
             this.queryInfo.stage = stage
             const res = await this.$axios.get("basicinfos/", {
@@ -723,6 +759,7 @@ export default {
             this.basicInfoList = res.data.results
             this.total = res.data.count
         },
+
         showAddDialog() {
             this.addDialogVisible = true
             this.getOrgList()
@@ -730,8 +767,10 @@ export default {
             this.getApprPurpList()
         },
 
+
         async saveBasicInfo(stage) {
             this.addForm.stage = stage
+            this.addForm.creator = this.loginUserID
             this.$refs.addFormRef.validate(async (valid) => {
                 if (!valid) {
                     return
@@ -740,37 +779,23 @@ export default {
                 if (res.status !== 201) {
                     return this.$message.error("创建项目失败，请联系管理员")
                 }
+
+                if (stage === "2") {
+                    const todoRes = await this.$axios.post("todo/", {
+                        basic_info: res.data.id,
+                        finished: false,
+                        type: 1,
+                        user: res.data.reviewer,
+                        isBack: false
+                    })
+                    if (todoRes.status !== 201) {
+                        return this.$message.error("添加待办事项失败")
+                    }
+                }
                 this.$message.success("创建项目成功")
                 this.addDialogVisible = false
-                this.getBasicInfoList()
+                await this.getBasicInfoList()
             })
-        },
-
-
-        addDialogClosed() {
-            this.$refs.addFormRef.resetFields()
-        },
-        // 修改对话框的关闭事件
-        editDialogClosed() {
-            // this.$refs.editProjFormRef.resetFields()
-        },
-        reviewDialogClosed() {
-            this.$refs.reviewFormRef.resetFields()
-        },
-        // 编辑按钮的点击事件
-        async showEditDialog(id) {
-            await this.getOrgList()
-            await this.getApprTypeList()
-            await this.getApprPurpList()
-            // this.queryInfo.query = "one"
-            const res = await this.$axios.get("basicinfos/" + id, {
-                params: this.queryInfo
-            })
-            if (res.status !== 200) {
-                this.$message.error("获取项目信息失败")
-            }
-            this.editForm = res.data
-            this.editDialogVisible = true
         },
 
         // 修改对话框表单的提交事件
@@ -788,13 +813,78 @@ export default {
                         if (res.status !== 200) {
                             this.$message.error(res.data.msg)
                         }
+
+                        // 需要判断是否有打回产生的todo，如果有，提交的时候要设置为完成状态。
+                        const todoRes = await this.$axios.get("/todo", {
+                            params: {
+                                basic_info: this.editForm.id
+                            }
+                        })
+                        if (todoRes.status !== 200) {
+                            return this.$message.error("获取待办事项失败")
+                        }
+                        let lastTodo = todoRes.data.results[0]
+                        if (lastTodo.is_back === true && lastTodo.finished === false) {
+                            const updateRes = await this.$axios.patch("/todo/" + lastTodo.id + "/", {
+                                finished: true
+                            })
+                            if (updateRes.status !== 200) {
+                                return this.$message.error("更新待办事项不状态失败")
+                            }
+                        }
+
+
+                        // stage==2 代表是提交，需要添加一个todo事项
+                        if (stage === "2") {
+                            const res = await this.$axios.post("todo/", {
+                                basic_info: this.editForm.id,
+                                finished: false,
+                                type: 1,
+                                user: this.editForm.reviewer,
+                                isBack: false
+                            });
+                            if (res.status !== 201) {
+                                return this.$message.error("添加待办事项失败")
+                            }
+                        }
+
                         this.editDialogVisible = false
-                        this.getBasicInfoList()
+                        await this.getBasicInfoList()
                         this.$message.success("编辑成功")
                     }
                 }
             )
         },
+
+        addDialogClosed() {
+            this.$refs.addFormRef.resetFields()
+        },
+
+        // 修改对话框的关闭事件
+        editDialogClosed() {
+            // this.$refs.editProjFormRef.resetFields()
+        },
+
+        //reviewDialogClosed() {
+        //    this.$refs.reviewFormRef.resetFields()
+        //},
+
+        // 编辑按钮的点击事件
+        async showEditDialog(id) {
+            await this.getOrgList()
+            await this.getApprTypeList()
+            await this.getApprPurpList()
+            // this.queryInfo.query = "one"
+            const res = await this.$axios.get("basicinfos/" + id, {
+                params: this.queryInfo
+            })
+            if (res.status !== 200) {
+                this.$message.error("获取项目信息失败")
+            }
+            this.editForm = res.data
+            this.editDialogVisible = true
+        },
+
 
         async showReviewDialog(id) {
             const res = await this.$axios.get("basicinfos/" + id, {
@@ -823,10 +913,11 @@ export default {
             // } else {      // 没有记录，那么代表是第一次审批，新建记录。
             //     console.log("没有数据")
             // }
-            await this.getCheckRecord(this.detailForm.id)
+            //await this.getCheckRecord(this.detailForm.id)
             this.reviewDialogVisible = true
-            await this.getBasicInfoList()
+            //await this.getBasicInfoList()
         },
+
         // 获取暂存的信息
         async getCheckRecord(basicInfoID) {
             const res = await this.$axios.get("checkrecords/?type=r&id=" + basicInfoID)
@@ -835,52 +926,101 @@ export default {
                     this.reviewForm = res.data.results[0]
                 }
             } else {
-                console.log("没有数据")
+                console.log("没有暂存记录")
             }
         },
-        // 立项审批
-        async saveReview(stage) {
-            // 1 - 更新BasicInfo的stage状态
-            // 2 - 新增CheckRecord的记录
-            // TODO: 3 - 新增待办事项和已办事项
 
-            this.$refs.reviewFormRef.validate(async (valid) => {
-                if (!valid) {
-                    this.$message.error("表单验证失败")
-                    return
-                } else {
-                    // 变更basicInfo的stage状态
-                    const projRes = await this.$axios.patch("basicinfos/" + this.detailForm.id + "/",
-                        {
-                            "stage": stage
-                        })
-                    if (projRes.status !== 200) {
-                        this.$message.error(projRes.data.msg)
-                    } else {
-                        if (stage === 3) {
-                            this.reviewForm.status = 0      // 暂存
-                        } else if (stage === 1) {
-                            this.reviewForm.status = 2      // 打回
-                        } else {
-                            this.reviewForm.status = 1      // 提交
-                        }
-                        this.reviewForm.basicInfo = this.detailForm.id
-                        this.reviewForm.reviewer = this.detailForm.reviewer
-                        this.reviewForm.type = "r"
-                        // 向checkRecord表中写入数据
-                        const res = await this.$axios.post("checkrecords/", this.reviewForm)
-                        if (res.status !== 201) {
-                            this.$message.error(res.data.msg)
-                        } else {
-                            this.$message.success("添加审批记录成功")
-                        }
-                    }
-                    this.reviewDialogVisible = false
-                    this.reviewForm = {}
-                    await this.getBasicInfoList()
-                }
-            })
-        },
+        // 立项审批
+        //async saveReview(stage) {
+        //    // 1 - 更新BasicInfo的stage状态
+        //    // 2 - 新增CheckRecord的记录
+        //    // 3 - 新增待办事项和已办事项
+        //    this.$refs.reviewFormRef.validate(async (valid) => {
+        //        if (!valid) {
+        //            this.$message.error("表单验证失败")
+        //            return
+        //        } else {
+        //            // 变更basicInfo的stage状态
+        //            const projRes = await this.$axios.patch("basicinfos/" + this.detailForm.id + "/",
+        //                {
+        //                    "stage": stage
+        //                })
+        //            if (projRes.status !== 200) {
+        //                this.$message.error(projRes.data.msg)
+        //            } else {
+        //                this.reviewForm.basicInfo = this.detailForm.id
+        //                this.reviewForm.reviewer = this.detailForm.reviewer
+        //                this.reviewForm.type = "r"
+        //
+        //                if (stage === 3) {
+        //                    this.reviewForm.status = 0      // 暂存，只需要创建审批记录。
+        //                } else if (stage === 1) {
+        //                    this.reviewForm.status = 2      // 打回，创建审批记录，修改审批人的todo为完成，给打回接收人创建新的todo
+        //                    await this.updateTodo(this.reviewForm.basicInfo)
+        //                    await this.saveTodo(this.reviewForm.basicInfo, this.detailForm.creator, false, 1)
+        //                } else {
+        //                    this.reviewForm.status = 1      // 提交，创建审批记录，修改审批人的todo为完成。
+        //                    await this.updateTodo(this.reviewForm.basicInfo)
+        //                }
+        //                // 向checkRecord表中写入数据
+        //                await this.saveCheckRecord(this.reviewForm);
+        //
+        //            }
+        //        }
+        //
+        //        this.reviewDialogVisible = false
+        //        this.reviewForm = {}
+        //        await this.getBasicInfoList()
+        //
+        //    })
+        //},
+        // 创建checkRecord
+        //async saveCheckRecord(data) {
+        //    const res = await this.$axios.post("checkrecords/", data)
+        //    if (res.status !== 201) {
+        //        this.$message.error(res.data.msg)
+        //    } else {
+        //        this.$message.success("添加审批记录成功")
+        //    }
+        //},
+
+        // 创建todoItem
+        //async saveTodo(basicInfo, user, is_finished, type) {
+        //    const res = await this.$axios.post("todo/", {
+        //        basic_info: basicInfo,
+        //        finished: is_finished,
+        //        type: type,
+        //        user: user,
+        //    })
+        //    if (res.status !== 201) {
+        //        return this.$message.error("添加待办事项失败")
+        //    }
+        //},
+
+        // 改变todoItem的状态
+        //async updateTodo(basic_info_id) {
+        //    // 暂存(stage=3)：不处理todoItem
+        //    // 通过(stage=4)：将todoItem置为完成
+        //    // 打回(stage=1)：将todoItem置为完成，并给creator创建一个待办。
+        //
+        //    // 第一步： 获取basic_info_id对应的，最新的一个todo_id
+        //    const res = await this.$axios.get("todo/",
+        //        {
+        //            basic_info: basic_info_id
+        //        });
+        //    if (res.status !== 200) {
+        //        return this.$message.error("获取待办事项失败")
+        //    }
+        //    let todo_id = res.data.results[0].id;
+        //    // 第二步：将对应ID的todo状态设置为”完成“
+        //    const todoRes = await this.$axios.patch("todo/" + todo_id + "/", {
+        //        finished: true
+        //    })
+        //    if (todoRes.status !== 200) {
+        //        return this.$message.error("更新待办事项状态失败")
+        //    }
+        //},
+
         // 通过id删除项目
         async deleteBasicInfo(id) {
             // this.queryInfo.query = "one"
@@ -905,14 +1045,17 @@ export default {
             this.$message.success("删除项目成功")
             this.getBasicInfoList()
         },
+
         async getUserList() {
             const res = await this.$axios.get("users")
             this.userList = res.data
         },
+
         showDetailDialog(row) {
             this.detailDialogVisible = true
             this.detailForm = row
         },
+
         detailDialogClosed() {
             this.detailDialogVisible = false
         },
@@ -922,11 +1065,13 @@ export default {
             this.queryInfo.size = size
             this.getBasicInfoList()
         },
+
         // 分页器page变化的监听事件
         handleCurrentChange(page) {
             this.queryInfo.page = page
             this.getBasicInfoList()
         },
+
         // 用于table中展示是否归还的字段，element的table默认不直接显示布尔值
         formatBoolean: function (row, column, cellValue) {
             let ret = ''  //你想在页面展示的值
@@ -937,6 +1082,7 @@ export default {
             }
             return ret
         },
+
         getLoginUserID() {
             this.loginUserID = window.localStorage.getItem("id");
         },
@@ -953,10 +1099,21 @@ export default {
             this.$router.push({
                 path: "finalreview/" + id
             })
+        },
+
+        // 关闭审批对话框，这个方法是供子组件调用的
+        closeDialog() {
+            this.reviewDialogVisible = false
         }
     },
+
     created() {
-        this.getBasicInfoList()
+        if (this.$route.query.jump && this.$route.query.redo) {
+            this.showEditDialog(this.$route.query.basic_info_id)
+        } else if (this.$route.query.jump && !this.$route.query.redo) {
+            this.showReviewDialog(this.$route.query.basic_info_id);
+        }
+        this.getBasicInfoList();
         this.getUserList()
         this.getLoginUserID()
     }

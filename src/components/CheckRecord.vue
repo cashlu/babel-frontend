@@ -39,9 +39,9 @@
                     sortable
                     label="审批状态">
                     <template v-slot="scope">
-                        <el-tag class="status-tag" effect="plain" v-if="scope.row.status===0" type="primary">暂存
+                        <el-tag class="status-tag" effect="plain" v-if="scope.row.status==='t'" type="primary">暂存
                         </el-tag>
-                        <el-tag class="status-tag" effect="plain" v-else-if="scope.row.status===1" type="danger">打回
+                        <el-tag class="status-tag" effect="plain" v-else-if="scope.row.status==='b'" type="danger">打回
                         </el-tag>
                         <el-tag class="status-tag" effect="plain" v-else type="success">通过</el-tag>
                     </template>
@@ -142,7 +142,6 @@ export default {
             }
             this.checkRecords = res.data.results
             this.total = res.data.count
-            console.log(this.checkRecords);
         },
         // 分页器size变化的监听事件
         handleSizeChange(size) {

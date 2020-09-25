@@ -54,6 +54,7 @@
                                    @click="showDetailDialog(scope.row)"
                                    icon="el-icon-edit">查看
                         </el-button>
+<!--                        FIXME: 编辑和删除按钮没有做权限的判断，任何人都可以删除，这里需要修改-->
                         <el-button size="mini"
                                    type="primary"
                                    @click="showEditDialog(scope.row.id)"
@@ -88,7 +89,7 @@
             :close-on-click-modal="false"
             :visible.sync="addDialogVisible"
             width="80%">
-            <!-- 添加项目的表单 -->
+            <!-- 添加鉴定信息的表单 -->
             <el-form :model="addForm"
                      :rules="apprInfoFormRules"
                      ref="addFormRef"
@@ -655,12 +656,11 @@ export default {
                 this.apprTeamList.push(res.data.name)
             }
         },
+
         // 获取当前登录用户的ID
         getLoginUserID() {
             this.loginUserID = window.localStorage.getItem("id");
         },
-
-
     },
     created() {
         this.getApprInfoList()

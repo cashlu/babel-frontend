@@ -9,9 +9,10 @@ import './plugins/element'
 import './assets/css/global.css'
 
 
+
 Vue.config.productionTip = false
 
-//设置axios为form-data
+//设置axios为json
 axios.defaults.headers.post['Content-Type'] = 'application/json;charset=UTF-8'
 axios.defaults.headers.get['Content-Type'] = 'application/json;charset=UTF-8'
 // axios.defaults.headers.put['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -27,8 +28,8 @@ axios.defaults.headers.get['Content-Type'] = 'application/json;charset=UTF-8'
 
 
 Vue.prototype.$axios = axios
-axios.defaults.baseURL = "http://47.111.245.46:8888/api/v1/"
-// axios.defaults.baseURL = "http://127.0.0.1:8888/api/v1/"
+// axios.defaults.baseURL = "http://47.111.245.46:8888/api/v1/"
+axios.defaults.baseURL = "http://127.0.0.1:8888/api/v1/"
 
 //axios请求拦截器，用于在每次发起请求时，在request的header中包含token，让后端验证。
 axios.interceptors.request.use(config => {
