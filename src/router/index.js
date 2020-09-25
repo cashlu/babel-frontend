@@ -17,6 +17,7 @@ import CheckRecord from "@/components/CheckRecord";
 import Proofread from "@/components/Proofread";
 import FinalReview from "@/components/FinalReview";
 import TodoList from "@/components/TodoList";
+import Review from "@/components/Review";
 
 Vue.use(VueRouter)
 
@@ -43,6 +44,7 @@ const routes = [
             {path: '/proofread/:id', component: Proofread},
             {path: '/finalreview/:id', component: FinalReview},
             {path: '/todolist', component: TodoList},
+            {path: '/review', component: Review},
         ]
     },
 ]

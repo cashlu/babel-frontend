@@ -4,7 +4,7 @@
                  :rules="reviewRules"
                  ref="reviewFormRef"
                  label-width="120px">
-            <el-form-item label="审批意见" prop="opinion" required>
+            <el-form-item label="审批意见：" prop="opinion" required>
                 <el-input type="textarea"
                           :autosize="{ minRows: 4, maxRows: 10}"
                           v-model="reviewForm.opinion">
@@ -21,6 +21,7 @@
             </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
+            <el-button type="info" @click="redirectToBasicInfo()" style="font-weight: bold">返 回</el-button>
             <el-button type="info" @click="closeDialog()" style="font-weight: bold">关 闭</el-button>
             <el-button type="warning" @click="reviewTransient()" style="font-weight: bold">暂 存</el-button>
             <el-button type="danger" @click="reviewBack()" style="font-weight: bold">打 回</el-button>
@@ -225,6 +226,10 @@ export default {
         // 关闭父组件的审批对话框
         closeDialog() {
             this.$emit("closeDialog")
+        },
+
+        redirectToBasicInfo() {
+            this.$router.push("/basicinfos")
         }
     },
     created() {

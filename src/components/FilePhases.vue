@@ -376,16 +376,14 @@
             async saveEditFile() {
                 const res = await this.$axios.put("filephases/" + this.filePhaseForm.id + "/",
                     this.filePhaseForm)
-                // console.log(res)
                 if (res.status !== 200) {
                     return this.$message.error("信息修改失败")
                 }
                 this.editDialogVisible = false
-                this.getFileList()
+                await this.getFileList()
                 return this.$message.success("修改成功")
             },
             async deleteFilePhase(row) {
-
                 const confirmResult = await this.$confirm('此操作将永久删除该文件, 是否继续?',
                     '提示', {
                         confirmButtonText: '确定',
@@ -412,8 +410,8 @@
                 if (basicRes.status !== 200) {
                     return this.$message.error("重置状态失败")
                 }
-                this.getFileList()
-                this.getBasicInfoList()
+                await this.getFileList()
+                await this.getBasicInfoList()
                 return this.$message.success("删除归档成功")
 
             },

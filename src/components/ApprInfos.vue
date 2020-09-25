@@ -54,7 +54,7 @@
                                    @click="showDetailDialog(scope.row)"
                                    icon="el-icon-edit">查看
                         </el-button>
-<!--                        FIXME: 编辑和删除按钮没有做权限的判断，任何人都可以删除，这里需要修改-->
+                        <!--                        FIXME: 编辑和删除按钮没有做权限的判断，任何人都可以删除，这里需要修改-->
                         <el-button size="mini"
                                    type="primary"
                                    @click="showEditDialog(scope.row.id)"
@@ -568,8 +568,7 @@ export default {
         saveApprInfo(stage) {   //stage=5暂存   6提交
             this.$refs.addFormRef.validate(async (valid) => {
                 if (!valid) {
-                    this.$message.error("表单验证失败")
-                    return
+                    return this.$message.error("表单验证失败")
                 }
                 const res = await this.$axios.post("apprinfos/", this.addForm)
                 if (res.status !== 201) {
@@ -586,8 +585,17 @@ export default {
                 }
                 this.addDialogVisible = false
                 await this.getApprInfoList()
-                // this.getBasicInfoList("1")
                 this.$message.success("添加鉴定信息成功")
+
+                if (stage === 5) {
+                    // 暂存，给立卷人自己添加一个待办
+                    await this.saveTodo(this.addForm.basic_info, false, this.addForm.archivist, 2);
+                }
+                // 给校对添加待办
+                else if (stage === 6) {
+                    await this.saveTodo(this.addForm.basic_info, false, this.addForm.proofreader, 3);
+                }
+
             })
         },
         updateApprInfo(stage) {
@@ -614,6 +622,13 @@ export default {
                 await this.getApprInfoList()
                 // this.getBasicInfoList("0")
                 this.$message.success("添加鉴定信息成功")
+
+
+                // 给校对添加待办
+                if (stage === 6) {
+                    await this.updateTodo()
+                    await this.saveTodo(this.editForm.basic_info, false, this.editForm.proofreader, 3);
+                }
             })
         },
 
@@ -660,6 +675,43 @@ export default {
         // 获取当前登录用户的ID
         getLoginUserID() {
             this.loginUserID = window.localStorage.getItem("id");
+        },
+
+        // 添加待办事项
+        async saveTodo(basicInfoId, isBack, user, type) {
+            const res = await this.$axios.post("todo/", {
+                basic_info: basicInfoId,
+                finished: false,
+                type: type,
+                user: user,
+                is_back: isBack,
+            })
+            if (res.status !== 201) {
+                return this.$message.error("添加待办事项失败")
+            }
+        },
+
+        // 更新待办事项
+        // FIXME: 这个处理逻辑不好，因为后端接口的问题，无法获取最后一个记录，在后端重构的时候解决这个问题
+        async updateTodo() {
+            const res = await this.$axios.get("/todo", {
+                params: {
+                    basic_info: this.basicInfoId
+                }
+            })
+            if (res.status !== 200) {
+                return this.$message.error("获取待办事项失败")
+            }
+            if (res.data.results[0]) {
+                let todoId = res.data.results[0].id
+                const updateRes = await this.$axios.patch("/todo/" + todoId + "/", {
+                    finished: true
+                })
+                if (updateRes.status !== 200) {
+                    return this.$message.error("更新待办事项不状态失败")
+                }
+            }
+
         },
     },
     created() {

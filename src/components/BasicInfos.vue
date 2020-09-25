@@ -52,7 +52,7 @@
                         <el-button size="mini"
                                    type="primary"
                                    @click="showDetailDialog(scope.row)"
-                                   icon="el-icon-edit">查看
+                                   icon="el-icon-edit">查 看
                         </el-button>
                         <!-- 判断stage，如果该项目不是立项中阶段（1），则不能修改-->
                         <!-- TODO: 删除、编辑等按钮的显示逻辑，例如归属人才能删除 -->
@@ -60,33 +60,40 @@
                                    type="warning"
                                    @click="showEditDialog(scope.row.id)"
                                    v-show="scope.row.stage === '1' && scope.row.creator === parseInt(loginUserID)"
-                                   icon="el-icon-edit">编辑
+                                   icon="el-icon-edit">编 辑
                         </el-button>
 
                         <el-button size="mini"
                                    type="danger"
                                    @click="deleteBasicInfo(scope.row.id)"
                                    v-show="scope.row.creator === parseInt(loginUserID)"
-                                   icon="el-icon-delete">删除
+                                   icon="el-icon-delete">删 除
                         </el-button>
+                        <!--                        <el-button size="mini"-->
+                        <!--                                   type="primary"-->
+                        <!--                                   @click="showReviewDialog(scope.row.id)"-->
+                        <!--                                   v-show="scope.row.reviewer === parseInt(loginUserID) && (scope.row.stage === '2' || scope.row.stage === '3')"-->
+                        <!--                                   icon="el-icon-s-check">初审-->
+                        <!--                        </el-button>-->
                         <el-button size="mini"
-                                   type="primary"
-                                   @click="showReviewDialog(scope.row.id)"
+                                   type="success"
+                                   @click="redirectToReview(scope.row.id)"
                                    v-show="scope.row.reviewer === parseInt(loginUserID) && (scope.row.stage === '2' || scope.row.stage === '3')"
-                                   icon="el-icon-s-check">初审
+                                   icon="el-icon-delete">初 审
                         </el-button>
                         <el-button size="mini"
                                    type="primary"
                                    @click="toProofread(scope.row.id)"
                                    v-show="scope.row.proofreader === parseInt(loginUserID)  && (scope.row.stage === '6' || scope.row.stage === '7')"
-                                   icon="el-icon-delete">校对
+                                   icon="el-icon-delete">校 对
                         </el-button>
                         <el-button size="mini"
                                    type="success"
                                    @click="toFinalReview(scope.row.id)"
                                    v-show="scope.row.final_reviewer === parseInt(loginUserID)  && (scope.row.stage === '8' || scope.row.stage === '9')"
-                                   icon="el-icon-delete">终审
+                                   icon="el-icon-delete">终 审
                         </el-button>
+
                     </template>
                 </el-table-column>
             </el-table>
@@ -444,160 +451,131 @@
         </el-dialog>
 
         <!-- 审批的对话框 -->
-        <el-dialog
-            title="审批立项信息"
-            :close-on-click-modal="false"
-            :visible.sync="reviewDialogVisible"
-            width="80%">
-            <!-- 审批对话框中项目详情的表单 -->
-            <el-form :model="detailForm"
-                     :rules="basicInfoRules"
-                     ref="detailFormRef"
-                     label-width="120px">
-                <!-- prop是验证规则 -->
-                <el-row :gutter="20">
-                    <el-col :span="8">
-                        <el-form-item label="项目编号：" prop="sn">
-                            <el-input v-model="detailForm.sn" :readonly="true"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="16">
-                        <el-form-item label="项目名称：" prop="name">
-                            <el-input v-model="detailForm.name" :readonly="true"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-form-item label="委托方：" prop="principal">
-                    <el-input v-model="detailForm.principal" :readonly="true"></el-input>
-                </el-form-item>
-                <el-form-item label="鉴定对象：" prop="target">
-                    <el-input v-model="detailForm.target" :readonly="true"></el-input>
-                </el-form-item>
-                <el-row :gutter="20">
-                    <el-col :span="12">
-                        <el-form-item label="委托时间：" prop="trust_date">
-                            <el-date-picker
-                                :readonly="true"
-                                v-model="detailForm.trust_date"
-                                type="date"
-                                placeholder="选择日期"
-                                format="yyyy 年 MM 月 dd 日"
-                                value-format="yyyy-MM-dd">
-                            </el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="受理时间：" prop="created_date">
-                            <el-date-picker
-                                :readonly="true"
-                                v-model="detailForm.created_date"
-                                type="date"
-                                placeholder="选择日期"
-                                format="yyyy 年 MM 月 dd 日"
-                                value-format="yyyy-MM-dd">
-                            </el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-form-item label="鉴定机构：" prop="org">
-                    <el-input v-model="detailForm.org_name" :readonly="true"></el-input>
-                </el-form-item>
-                <el-row :gutter="20">
-                    <el-col :span="12">
-                        <el-form-item label="鉴定类别：" prop="type">
-                            <el-input v-model="detailForm.type_name" :readonly="true"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="鉴定用途：" prop="purpose">
-                            <el-input v-model="detailForm.purpose_name" :readonly="true"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-form-item label="二次鉴定：">
-                    <el-switch
-                        disabled
-                        v-model="detailForm.is_re_appraisal"
-                        active-color="#13ce66"
-                        inactive-color="#ff4949">
-                    </el-switch>
-                </el-form-item>
-                <el-form-item label="委托事项：" prop="trust_detail">
-                    <el-input type="textarea"
-                              :readonly="true"
-                              :autosize="{ minRows: 4, maxRows: 10}"
-                              v-model="detailForm.trust_detail"></el-input>
-                </el-form-item>
-                <el-form-item label="立项审批人：" prop="reviewer">
-                    <el-input v-model="detailForm.reviewer_name" :readonly="true"></el-input>
-                </el-form-item>
-            </el-form>
-            <el-divider></el-divider>
+        <!--        <el-dialog-->
+        <!--            title="审批立项信息"-->
+        <!--            :close-on-click-modal="false"-->
+        <!--            :visible.sync="reviewDialogVisible"-->
+        <!--            width="80%">-->
+        <!--            &lt;!&ndash; 审批对话框中项目详情的表单 &ndash;&gt;-->
+        <!--            <el-form :model="detailForm"-->
+        <!--                     :rules="basicInfoRules"-->
+        <!--                     ref="detailFormRef"-->
+        <!--                     label-width="120px">-->
+        <!--                &lt;!&ndash; prop是验证规则 &ndash;&gt;-->
+        <!--                <el-row :gutter="20">-->
+        <!--                    <el-col :span="8">-->
+        <!--                        <el-form-item label="项目编号：" prop="sn">-->
+        <!--                            <el-input v-model="detailForm.sn" :readonly="true"></el-input>-->
+        <!--                        </el-form-item>-->
+        <!--                    </el-col>-->
+        <!--                    <el-col :span="16">-->
+        <!--                        <el-form-item label="项目名称：" prop="name">-->
+        <!--                            <el-input v-model="detailForm.name" :readonly="true"></el-input>-->
+        <!--                        </el-form-item>-->
+        <!--                    </el-col>-->
+        <!--                </el-row>-->
+        <!--                <el-form-item label="委托方：" prop="principal">-->
+        <!--                    <el-input v-model="detailForm.principal" :readonly="true"></el-input>-->
+        <!--                </el-form-item>-->
+        <!--                <el-form-item label="鉴定对象：" prop="target">-->
+        <!--                    <el-input v-model="detailForm.target" :readonly="true"></el-input>-->
+        <!--                </el-form-item>-->
+        <!--                <el-row :gutter="20">-->
+        <!--                    <el-col :span="12">-->
+        <!--                        <el-form-item label="委托时间：" prop="trust_date">-->
+        <!--                            <el-date-picker-->
+        <!--                                :readonly="true"-->
+        <!--                                v-model="detailForm.trust_date"-->
+        <!--                                type="date"-->
+        <!--                                placeholder="选择日期"-->
+        <!--                                format="yyyy 年 MM 月 dd 日"-->
+        <!--                                value-format="yyyy-MM-dd">-->
+        <!--                            </el-date-picker>-->
+        <!--                        </el-form-item>-->
+        <!--                    </el-col>-->
+        <!--                    <el-col :span="12">-->
+        <!--                        <el-form-item label="受理时间：" prop="created_date">-->
+        <!--                            <el-date-picker-->
+        <!--                                :readonly="true"-->
+        <!--                                v-model="detailForm.created_date"-->
+        <!--                                type="date"-->
+        <!--                                placeholder="选择日期"-->
+        <!--                                format="yyyy 年 MM 月 dd 日"-->
+        <!--                                value-format="yyyy-MM-dd">-->
+        <!--                            </el-date-picker>-->
+        <!--                        </el-form-item>-->
+        <!--                    </el-col>-->
+        <!--                </el-row>-->
+        <!--                <el-form-item label="鉴定机构：" prop="org">-->
+        <!--                    <el-input v-model="detailForm.org_name" :readonly="true"></el-input>-->
+        <!--                </el-form-item>-->
+        <!--                <el-row :gutter="20">-->
+        <!--                    <el-col :span="12">-->
+        <!--                        <el-form-item label="鉴定类别：" prop="type">-->
+        <!--                            <el-input v-model="detailForm.type_name" :readonly="true"></el-input>-->
+        <!--                        </el-form-item>-->
+        <!--                    </el-col>-->
+        <!--                    <el-col :span="12">-->
+        <!--                        <el-form-item label="鉴定用途：" prop="purpose">-->
+        <!--                            <el-input v-model="detailForm.purpose_name" :readonly="true"></el-input>-->
+        <!--                        </el-form-item>-->
+        <!--                    </el-col>-->
+        <!--                </el-row>-->
+        <!--                <el-form-item label="二次鉴定：">-->
+        <!--                    <el-switch-->
+        <!--                        disabled-->
+        <!--                        v-model="detailForm.is_re_appraisal"-->
+        <!--                        active-color="#13ce66"-->
+        <!--                        inactive-color="#ff4949">-->
+        <!--                    </el-switch>-->
+        <!--                </el-form-item>-->
+        <!--                <el-form-item label="委托事项：" prop="trust_detail">-->
+        <!--                    <el-input type="textarea"-->
+        <!--                              :readonly="true"-->
+        <!--                              :autosize="{ minRows: 4, maxRows: 10}"-->
+        <!--                              v-model="detailForm.trust_detail"></el-input>-->
+        <!--                </el-form-item>-->
+        <!--                <el-form-item label="立项审批人：" prop="reviewer">-->
+        <!--                    <el-input v-model="detailForm.reviewer_name" :readonly="true"></el-input>-->
+        <!--                </el-form-item>-->
+        <!--            </el-form>-->
+        <!--            <el-divider></el-divider>-->
 
-            <!-- 审批链 -->
-            <!-- 子组件包裹在v-if内，是为了每次打开时，都执行created -->
-            <el-card class="box-card" v-if="reviewDialogVisible">
-                <review-chain :basicInfoId="detailForm.id"></review-chain>
-            </el-card>
+        <!--            &lt;!&ndash; 审批链 &ndash;&gt;-->
+        <!--            &lt;!&ndash; 子组件包裹在v-if内，是为了每次打开时，都执行created &ndash;&gt;-->
+        <!--            <el-card class="box-card" v-if="reviewDialogVisible">-->
+        <!--                <review-chain :basicInfoId="detailForm.id"></review-chain>-->
+        <!--            </el-card>-->
 
-            <el-divider></el-divider>
+        <!--            <el-divider></el-divider>-->
 
-            <!--审批表单-->
-            <el-card v-if="reviewDialogVisible">
-                <!-- 注意：reviewType没有冒号 -->
-                <review-form @closeDialog="closeDialog"
-                             @getBasicInfoList="getBasicInfoList"
-                             reviewType="r"
-                             lastStage="1"
-                             nextStage="4"
-                             lastTodoType="1"
-                             nextTodoType="2"
-                             :lastUser="detailForm.creator"
-                             :nextUser="detailForm.reviewer"
-                             :basicInfoId="detailForm.id">
-                </review-form>
-            </el-card>
-
-            <!--            <el-form :model="reviewForm"-->
-            <!--                     :rules="reviewRules"-->
-            <!--                     ref="reviewFormRef"-->
-            <!--                     label-width="120px">-->
-            <!--                <el-form-item label="审批意见" prop="opinion" required>-->
-            <!--                    <el-input type="textarea"-->
-            <!--                              :autosize="{ minRows: 4, maxRows: 10}"-->
-            <!--                              v-model="reviewForm.opinion">-->
-            <!--                    </el-input>-->
-            <!--                </el-form-item>-->
-            <!--                <el-form-item label="审批时间：" prop="created_date" required>-->
-            <!--                    <el-date-picker-->
-            <!--                        v-model="reviewForm.created_date"-->
-            <!--                        type="date"-->
-            <!--                        placeholder="选择日期"-->
-            <!--                        format="yyyy 年 MM 月 dd 日"-->
-            <!--                        value-format="yyyy-MM-dd">-->
-            <!--                    </el-date-picker>-->
-            <!--                </el-form-item>-->
-            <!--            </el-form>-->
-
-            <!--            <span slot="footer" class="dialog-footer">-->
-            <!--                <el-button type="info" @click="reviewDialogVisible = false" style="font-weight: bold">关 闭</el-button>-->
-            <!--                <el-button type="warning" @click="saveReview(3)" style="font-weight: bold">暂 存</el-button>-->
-            <!--                <el-button type="danger" @click="saveReview(1)" style="font-weight: bold">打 回</el-button>-->
-            <!--                <el-button type="primary" @click="saveReview(4)" style="font-weight: bold">通 过</el-button>-->
-            <!--            </span>-->
-
-        </el-dialog>
+        <!--            &lt;!&ndash;审批表单&ndash;&gt;-->
+        <!--            <el-card v-if="reviewDialogVisible">-->
+        <!--                &lt;!&ndash; 注意：reviewType没有冒号 &ndash;&gt;-->
+        <!--                <review-form @closeDialog="closeDialog"-->
+        <!--                             @getBasicInfoList="getBasicInfoList"-->
+        <!--                             reviewType="r"-->
+        <!--                             lastStage="1"-->
+        <!--                             nextStage="4"-->
+        <!--                             lastTodoType="1"-->
+        <!--                             nextTodoType="2"-->
+        <!--                             :lastUser="detailForm.creator"-->
+        <!--                             :nextUser="detailForm.reviewer"-->
+        <!--                             :basicInfoId="detailForm.id">-->
+        <!--                </review-form>-->
+        <!--            </el-card>-->
+        <!--        </el-dialog>-->
 
     </div>
 </template>
 
 <script>
-import ReviewForm from "@/components/ReviewForm";
-import ReviewChain from "@/components/ReviewChain";
+//import ReviewForm from "@/components/ReviewForm";
+//import ReviewChain from "@/components/ReviewChain";
 
 export default {
     name: "BasicInfos",
-    components: {ReviewChain, ReviewForm},
+    //components: {ReviewChain, ReviewForm},
     data() {
         return {
             loginUserID: "",
@@ -616,7 +594,7 @@ export default {
             addDialogVisible: false,
             editDialogVisible: false,
             detailDialogVisible: false,
-            reviewDialogVisible: false,
+            //reviewDialogVisible: false,
             addForm: {
                 sn: "",
                 name: "",
@@ -666,18 +644,18 @@ export default {
                 final_reviewer_name: "",
                 trust_detail: ""
             },
-            reviewForm: {
-                opinion: "",
-                created_date: "",
-                basicInfo: "",
-                reviewer: "",
-                status: "",
-                type: "",
-            },
+            //reviewForm: {
+            //    opinion: "",
+            //    created_date: "",
+            //    basicInfo: "",
+            //    reviewer: "",
+            //    status: "",
+            //    type: "",
+            //},
             orgList: [],
             apprType: [],
             apprPurps: [],
-            checkRecordReviews: [],
+            //checkRecordReviews: [],
             basicInfoRules: {
                 sn: [
                     {required: false, message: "请输入项目编号", trigger: "blur"},
@@ -713,14 +691,14 @@ export default {
                     {required: true, message: "请选择立项审批人", trigger: "blur"},
                 ]
             },
-            reviewRules: {
-                opinion: [
-                    {required: false, message: "请输入审批意见", trigger: "blur"},
-                ],
-                created_date: [
-                    {required: false, message: "请选择审批日期", trigger: "blur"},
-                ]
-            }
+            //reviewRules: {
+            //    opinion: [
+            //        {required: false, message: "请输入审批意见", trigger: "blur"},
+            //    ],
+            //    created_date: [
+            //        {required: false, message: "请选择审批日期", trigger: "blur"},
+            //    ]
+            //}
         }
     },
     methods: {
@@ -767,7 +745,6 @@ export default {
             this.getApprPurpList()
         },
 
-
         async saveBasicInfo(stage) {
             this.addForm.stage = stage
             this.addForm.creator = this.loginUserID
@@ -801,7 +778,6 @@ export default {
         // 修改对话框表单的提交事件
         updateBasicInfo(stage) {
             this.editForm.stage = stage
-            // this.queryInfo.query = "one"
             this.$refs.editFormRef.validate(async (valid) => {
                     if (!valid) {
                         return false
@@ -1087,6 +1063,15 @@ export default {
             this.loginUserID = window.localStorage.getItem("id");
         },
 
+        // 进入初审页面
+        redirectToReview(id) {
+            this.$router.push({
+                    path: "/review/",
+                    query: {id: id}
+                }
+            )
+        },
+
         // 进入校对页面
         toProofread(id) {
             this.$router.push({
@@ -1102,9 +1087,11 @@ export default {
         },
 
         // 关闭审批对话框，这个方法是供子组件调用的
-        closeDialog() {
-            this.reviewDialogVisible = false
-        }
+        //closeDialog() {
+        //    this.reviewDialogVisible = false
+        //},
+
+
     },
 
     created() {

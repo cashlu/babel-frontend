@@ -1,14 +1,14 @@
 <template>
     <div id="finalreview">
+        <!-- 项目ID：{{this.$route.params.id}}-->
+
         <!--  卡片区-->
         <el-card class="box-card">
-            <h1>终审</h1>
+            <h1>项目信息校对</h1>
             <el-tabs type="border-card">
                 <el-tab-pane label="基础信息">
-                    <!-- 项目基础信息表单 -->
                     <el-form :model="basicInfo"
                              label-width="120px">
-                        <!-- prop是验证规则 -->
                         <el-row :gutter="20">
                             <el-col :span="8">
                                 <el-form-item label="项目编号：">
@@ -53,17 +53,17 @@
                                 </el-form-item>
                             </el-col>
                         </el-row>
-                        <el-form-item label="鉴定机构：" prop="org">
+                        <el-form-item label="鉴定机构：">
                             <el-input v-model="basicInfo.org_name" :readonly="true"></el-input>
                         </el-form-item>
                         <el-row :gutter="20">
                             <el-col :span="12">
-                                <el-form-item label="鉴定类别：" prop="type">
+                                <el-form-item label="鉴定类别：">
                                     <el-input v-model="basicInfo.type_name" :readonly="true"></el-input>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
-                                <el-form-item label="鉴定用途：" prop="purpose">
+                                <el-form-item label="鉴定用途：">
                                     <el-input v-model="basicInfo.purpose_name" :readonly="true"></el-input>
                                 </el-form-item>
                             </el-col>
@@ -87,9 +87,8 @@
                         </el-form-item>
                     </el-form>
                     <span slot="footer" class="dialog-footer">
-            <el-button @click="detailDialogVisible = false">关 闭</el-button>
-
-          </span>
+                         <el-button @click="detailDialogVisible = false">关 闭</el-button>
+                     </span>
                 </el-tab-pane>
                 <el-tab-pane label="鉴定材料">
                     <el-table
@@ -199,7 +198,6 @@
                             <el-input v-model="apprInfoForm.basic_info_name" :readonly="true"></el-input>
                         </el-form-item>
                         <el-form-item label="鉴定人员：">
-                            <!--<el-input v-model="detailForm.appraisal_team" :readonly="true"></el-input>-->
                             <el-transfer filterable
                                          v-model="apprInfoForm.appraisal_team"
                                          :data="transferUserList">
@@ -209,10 +207,10 @@
                             <el-input v-model="apprInfoForm.archivist_name" :readonly="true"></el-input>
                         </el-form-item>
                         <el-form-item label="校对人">
-                            <el-input v-model="apprInfoForm.proofreader_name" :readonly="true"></el-input>
+                            <el-input v-model="apprInfoForm.finalReviewer_name" :readonly="true"></el-input>
                         </el-form-item>
                         <el-form-item label="复核人">
-                            <el-input v-model="apprInfoForm.reviewer_name" :readonly="true"></el-input>
+                            <el-input v-model="apprInfoForm.final_reviewer_name" :readonly="true"></el-input>
                         </el-form-item>
                         <el-form-item label="鉴定地址">
                             <el-input v-model="apprInfoForm.appraisal_address" :readonly="true"></el-input>
@@ -260,11 +258,28 @@
             </el-tabs>
         </el-card>
         <br>
+        <!-- 审批链 -->
+        <el-card class="box-card">
+            <el-collapse>
+                <el-collapse-item title="审批链" name="1">
+                    <el-timeline :reverse="true">
+                        <el-timeline-item v-for="record in checkRecords" :timestamp="record.created_date"
+                                          placement="top">
+                            <el-card>
+                                <h4>审批人：{{ record.reviewer_name }}</h4>
+                                <p>审批意见：{{ record.opinion }}</p>
+                                <p>审批结果： {{ record.status_text }}</p>
+                            </el-card>
+                        </el-timeline-item>
+                    </el-timeline>
+                </el-collapse-item>
+            </el-collapse>
+        </el-card>
         <!-- 校对表单 -->
         <el-card class="box-card">
             <el-form :model="finalReviewForm"
-                     :rules="finalReviewRules"
-                     ref="finalReviewFormRef"
+                     :rules="finalReviewFormRules"
+                     ref="finalReviewForm"
                      label-width="120px">
                 <el-form-item label="校对意见" prop="opinion" required>
                     <el-input type="textarea"
@@ -283,9 +298,10 @@
                 </el-form-item>
             </el-form>
 
-            <el-button type="warning" @click="saveFinalReview(9)" style="font-weight: bold">暂 存</el-button>
-            <el-button type="danger" @click="saveFinalReview(7)" style="font-weight: bold">打 回</el-button>
-            <el-button type="primary" @click="saveFinalReview(10)" style="font-weight: bold">通 过</el-button>
+            <el-button type="info" @click="redirectToBasicInfo()" style="font-weight: bold">关 闭</el-button>
+            <el-button type="warning" @click="finalReviewTransient()" style="font-weight: bold">暂 存</el-button>
+            <el-button type="danger" @click="finalReviewBack()" style="font-weight: bold">打 回</el-button>
+            <el-button type="primary" @click="finalReviewSubmit()" style="font-weight: bold">通 过</el-button>
         </el-card>
 
         <!-- 查看材料详情的对话框  -->
@@ -298,33 +314,31 @@
             <el-form ref="showApprFileFormRef"
                      :model="showApprFileForm"
                      label-width="100px">
-                <el-form-item label="所属项目" prop="basic_info">
+                <el-form-item label="所属项目">
                     <el-input :readonly="true" v-model="showApprFileForm.basic_info_name"></el-input>
                 </el-form-item>
                 <el-row :gutter="10">
                     <el-col :span="18">
-                        <el-form-item label="材料名称" prop="name">
+                        <el-form-item label="材料名称">
                             <el-input :readonly="true" v-model="showApprFileForm.name"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="6">
-                        <el-form-item label="数量" prop="quantity">
+                        <el-form-item label="数量">
                             <!-- 如果要做数字的表单验证，这里要绑定为v-model.number -->
-                            <el-input :readonly="true" v-model.number="showApprFileForm.quantity"
-                                      placeholder="请输入正整数"></el-input>
+                            <el-input :readonly="true" v-model.number="showApprFileForm.quantity"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="10">
                     <el-col :span="12">
-                        <el-form-item label="接收人" prop="receiver">
+                        <el-form-item label="接收人">
                             <el-input :readonly="true" v-model="showApprFileForm.receiver_name"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="接收时间" prop="received_date">
+                        <el-form-item label="接收时间">
                             <el-input :readonly="true" v-model="showApprFileForm.received_date"></el-input>
-
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -426,12 +440,14 @@
                 <el-button type="primary" @click="showLocFileDialogVisible=false">关 闭</el-button>
             </span>
         </el-dialog>
+
     </div>
 </template>
 
 <script>
 export default {
     name: "FinalReview",
+
     data() {
         return {
             basicInfo: {},
@@ -449,14 +465,21 @@ export default {
             showLocFileDialogVisible: false,
             showLocFileForm: {},
             apprSampleList: [],
-            finalReviewRules: {
+            finalReviewFormRules: {
                 opinion: [
-                    {required: false, message: "请输入终审意见", trigger: "blur"},
+                    {required: false, message: "请输入校对意见", trigger: "blur"},
                 ],
                 name: [
-                    {required: true, message: "请选择终审日期", trigger: "blur"},
+                    {required: true, message: "请选择校对日期", trigger: "blur"},
                 ],
-            }
+            },
+            lastStage: "7",
+            nextStage: "10",
+            lastTodoType: "3",
+            nextTodoType: "5",
+            lastUser: "",
+            nextUser: "",
+            checkRecords: [],
         }
     },
     methods: {
@@ -466,8 +489,8 @@ export default {
                 return this.$message.error("获取项目列表失败")
             }
             this.basicInfo = res.data
+            this.nextUser = this.basicInfo.final_reviewer
         },
-
         async getApprFileList(id) {
             const res = await this.$axios.get("apprfiles?basic_info=" + id)
             if (res.status !== 200) {
@@ -475,22 +498,19 @@ export default {
             }
             this.apprFileList = res.data.results
         },
-
         async showApprFileDialog(id) {
             const res = await this.$axios.get("apprfiles/" + id)
             if (res.status !== 200) {
                 return this.$message.error("获取鉴定材料失败")
             }
             this.showApprFileForm = res.data
-            // 这里添加了await，不知道有没有影响
             await this.getApprFilePics(id)
             this.showApprFileDialogVisible = true
         },
         async showApprFileRecordDialog(id) {
-            const res = await this.$axios.get("apprfilerecs")
-            this.apprFileRecords = res.data.results
+            const res = await this.$axios.get("apprfilerecs?apprFileId=" + id)
+            this.apprFileRecords = res.data
             this.apprFileRecordDialogVisible = true
-
         },
         // 用于table中展示是否归还的字段，element的table默认不直接显示布尔值
         formatBoolean: function (row, column, cellValue) {
@@ -502,7 +522,6 @@ export default {
             }
             return ret
         },
-
         async getApprFilePics(apprFileId) {
             // 单个appraisal_file对应的所有图片
             let ids = []
@@ -528,7 +547,6 @@ export default {
             }
             this.localeFileList = res.data.results
         },
-
         // 获取一个locale_file对应的所有图片链接，用于在编辑或者查看详情页面展示图片附件。
         async getLocFilePics(locFileID) {
             // 单个locale_file对应的所有图片
@@ -555,10 +573,9 @@ export default {
             if (res.status !== 200) {
                 return this.$message.error("获取鉴定信息失败")
             }
-
             this.apprInfoForm = res.data[0]
+            this.lastUser = this.apprInfoForm.archivist
         },
-
         async showLocFileDetailDialog(id) {
             const res = await this.$axios.get("localfiles/" + id)
             if (res.status !== 200) {
@@ -583,65 +600,171 @@ export default {
                 this.transferUserList.push(user)
             }
         },
+        // 创建审批记录
+        async saveCheckRecord(status) {
+            this.finalReviewForm.type = "f"
+            this.finalReviewForm.status = status
+            this.finalReviewForm.basicInfo = this.basicInfo.id
+            // 审批人为当前的登录用户
+            this.finalReviewForm.reviewer = window.localStorage.getItem("id")
+            const res = await this.$axios.post("checkrecords/", this.finalReviewForm)
+            if (res.status !== 201) {
+                this.$message.error("创建审批记录失败");
+            } else {
+                this.$message.success("创建审批记录成功")
+            }
+        },
 
-        // 终审
-        async saveFinalReview(stage) {
-            this.$refs.finalReviewFormRef.validate(async (valid) => {
-                if (!valid) {
-                    this.$message.error("表单验证失败")
-                    return
-                } else {
-                    // 变更basicInfo的stage状态
-                    const projRes = await this.$axios.patch("basicinfos/" + this.$route.params.id + "/",
-                        {
-                            "stage": stage
-                        })
-                    if (projRes.status !== 200) {
-                        this.$message.error(projRes.data.msg)
-                    } else {    // 成功
-                        if (stage === 9) {
-                            this.finalReviewForm.status = 0
-                        } else if (stage === 7) {
-                            this.finalReviewForm.status = 2
-                        } else {
-                            this.finalReviewForm.status = 1
-                        }
-                        this.finalReviewForm.basicInfo = this.$route.params.id
-                        this.finalReviewForm.reviewer = window.localStorage.getItem("id")
-                        this.finalReviewForm.type = "f"
-                        // 向checkRecord表中写入数据
-                        const res = await this.$axios.post("checkrecords/", this.finalReviewForm)
-                        if (res.status !== 201) {
-                            this.$message.error(res.data.msg)
-                        } else {
-                            this.$message.success("添加审批记录成功")
-                        }
-                        await this.$router.push("/basicinfos")
+        // 更新basicInfo的stage字段
+        async updateBasicInfoStage(stage) {
+            const res = await this.$axios.patch("basicinfos/" + this.basicInfo.id + "/",
+                {
+                    stage: stage
+                })
+            if (res.status !== 200) {
+                return this.$message.error("重置项目stage失败")
+            } else {
+                return this.$message.success("重置项目stage成功")
+            }
+        },
+
+        // 返回项目列表
+        redirectToBasicInfo() {
+            this.$router.push("/basicinfos")
+        },
+
+        // 获取审批记录
+        async getCheckRecords(basicInfoId) {
+            const res = await this.$axios.get("checkrecords/",
+                {
+                    params: {
+                        basic_info_id: basicInfoId,
                     }
+                })
+            if (res.status !== 200) {
+                return this.$message.error("获取审批链失败")
+            }
+            this.checkRecords = res.data.results
+        },
+
+        // 创建待办
+        // user根据情况，选择lastUser或nextUser
+        // type: (1, "初审")
+        //       (2, "立卷")  # 预留，立卷人目前为抢占机制
+        //       (3, "校对")
+        //       (4, "终审")
+        //       (5, "归档")
+        async saveTodo(isBack, user, type) {
+            const res = await this.$axios.post("todo/", {
+                basic_info: this.basicInfo.id,
+                finished: false,
+                type: type,
+                user: user,
+                is_back: isBack,
+            })
+            if (res.status !== 201) {
+                return this.$message.error("添加待办事项失败")
+            }
+        },
+
+        // 更新待办为已办
+        // 针对一个basicInfo，获取最后一个todo，如果其finished为false，则置为true。
+        // FIXME: 这个处理逻辑不好，因为后端接口的问题，无法获取最后一个记录，在后端重构的时候解决这个问题
+        async updateTodo() {
+            const res = await this.$axios.get("/todo", {
+                params: {
+                    basic_info: this.basicInfoId
                 }
+            })
+            if (res.status !== 200) {
+                return this.$message.error("获取待办事项失败")
+            }
+            if (res.data.results[0]) {
+                let todoId = res.data.results[0].id
+                const updateRes = await this.$axios.patch("/todo/" + todoId + "/", {
+                    finished: true
+                })
+                if (updateRes.status !== 200) {
+                    return this.$message.error("更新待办事项不状态失败")
+                }
+            }
+        },
+
+        // 暂存
+        finalReviewTransient() {
+            // 暂存：创建审批记录，不更新项目stage，不添加todo，不更新todo
+            this.$refs.finalReviewForm.validate(async (valid) => {
+                if (!valid) {
+                    return this.$message.error("表单验证失败")
+                }
+                // 创建审批记录
+                await this.saveCheckRecord("t")     // t代表暂存
+
+                // 刷新项目列表
+                this.redirectToBasicInfo()
+
             })
         },
 
-        // 获取暂存的信息
-        async getCheckRecord(basicInfoID) {
-            const res = await this.$axios.get("checkrecords/?type=f&id=" + basicInfoID)
-            if (res.data.results.length !== 0) {
-                if (res.data.results[0].status === 0) {
-                    this.finalReviewForm = res.data.results[0]
+        // 打回
+        finalReviewBack() {
+            // 打回：创建审批记录，更新项目stage，给lastUser创建todo，将当前用户todo更新为已办
+            this.$refs.finalReviewForm.validate(async (valid) => {
+                if (!valid) {
+                    return this.$message.error("表单验证失败")
                 }
-            } else {
-                console.log("没有数据")
-            }
-        }
+
+                // 创建审批记录
+                await this.saveCheckRecord("b")
+
+                // 更新项目stage
+                await this.updateBasicInfoStage(this.lastStage)
+
+                // 更新当前用户todo为完成
+                await this.updateTodo()
+
+                // 给lastUser添加todo
+                await this.saveTodo(true, this.lastUser, this.lastTodoType)
+
+                this.redirectToBasicInfo()
+
+            })
+        },
+
+        // 通过
+        finalReviewSubmit() {
+            // 审批通过：创建审批记录，更新项目stage，给nextUser创建todo，将当前用户的todo更新为已办
+
+            this.$refs.finalReviewForm.validate(async (valid) => {
+                if (!valid) {
+                    return this.$message.error("表单验证失败")
+                }
+
+                // 创建审批记录
+                await this.saveCheckRecord("s")
+
+                // 更新项目stage
+                await this.updateBasicInfoStage(this.nextStage)
+
+                // 更新当前用户todo为完成
+                await this.updateTodo()
+
+                // 给nextUser添加todo
+                await this.saveTodo(true, this.nextUser, this.lastTodoType)
+
+                this.redirectToBasicInfo()
+
+            })
+        },
     },
     created() {
-        this.getBasicInfo(this.$route.params.id);
+        this.getBasicInfo(this.$route.params.id)
         this.getApprFileList(this.$route.params.id)
         this.getLocaleFileList(this.$route.params.id)
         this.getApprSampleList(this.$route.params.id)
         this.getApprInfo(this.$route.params.id)
         this.getUserList()
-        this.getCheckRecord(this.$route.params.id)
+        this.getCheckRecords(this.$route.params.id)
     }
 }
 </script>

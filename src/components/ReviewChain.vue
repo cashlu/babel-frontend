@@ -42,17 +42,18 @@ export default {
             const res = await this.$axios.get("checkrecords/",
                 {
                     params: {
-                        basicInfo_id: basicInfoId,
+                        basic_info_id: basicInfoId,
                     }
                 })
             if (res.status !== 200) {
                 return this.$message.error("获取审批链失败")
             }
+            console.log(res.data)
             this.checkRecords = res.data.results
         }
     },
     created() {
-        //console.log(this.basicInfoId);
+        console.log(this.basicInfoId);
         this.getCheckRecords(this.basicInfoId);
     }
 }
