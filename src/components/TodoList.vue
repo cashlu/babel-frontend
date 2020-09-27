@@ -18,27 +18,34 @@
                 <el-table-column type="index" label="序号"></el-table-column>
                 <el-table-column prop="basic_info_sn"
                                  label="项目编号"
-                                 width="180"></el-table-column>
+                                 min-width="180"></el-table-column>
                 <el-table-column prop="basic_info_name"
                                  label="项目名称"
-                                 width="180"></el-table-column>
-                <el-table-column prop="user_name"
-                                 label="责任人"
-                                 width="180"></el-table-column>
+                                 min-width="250"></el-table-column>
                 <el-table-column prop="type_text"
                                  label="事项类型"
-                                 width="180"></el-table-column>
+                                 min-width="180"></el-table-column>
+                <el-table-column prop="is_back"
+                                 min-width="150"
+                                 :formatter="formatBoolean"
+                                 sortable
+                                 label="是否打回">
+                    <template v-slot="scope">
+                        <el-tag class="finish-tag" effect="plain" v-if="scope.row.is_back===true" type="danger">打回
+                        </el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="created_time"
                                  label="创建时间"
                                  :formatter="dateFormat"
-                                 width="180"></el-table-column>
+                                 min-width="180"></el-table-column>
                 <el-table-column min-width="250px" label="操作">
                     <template v-slot="scope">
                         <!-- 如果要使用作用域插槽的话，那么使用的元素必须包裹在template中。 -->
                         <el-button size="mini"
                                    type="primary"
                                    @click="jumpToDetail(scope.row)"
-                                   icon="el-icon-edit">查看
+                                   icon="el-icon-edit">处理
                         </el-button>
                     </template>
                 </el-table-column>
@@ -67,20 +74,17 @@
                 <el-table-column type="index" label="序号"></el-table-column>
                 <el-table-column prop="basic_info_sn"
                                  label="项目编号"
-                                 width="180"></el-table-column>
+                                 min-width="180"></el-table-column>
                 <el-table-column prop="basic_info_name"
                                  label="项目名称"
-                                 width="180"></el-table-column>
-                <el-table-column prop="user_name"
-                                 label="责任人"
-                                 width="180"></el-table-column>
-                <el-table-column prop="type"
+                                 min-width="250"></el-table-column>
+                <el-table-column prop="type_text"
                                  label="事项类型"
-                                 width="180"></el-table-column>
+                                 min-width="180"></el-table-column>
                 <el-table-column prop="created_time"
                                  label="创建时间"
                                  :formatter="dateFormat"
-                                 width="180"></el-table-column>
+                                 min-width="180"></el-table-column>
             </el-table>
         </el-card>
         <!--  已办事项分页  -->
@@ -113,7 +117,6 @@ export default {
             loginUserID: "",
             todolist: [],
             finishedList: [],
-
         }
     },
     methods: {
@@ -160,65 +163,151 @@ export default {
         },
 
         // 跳转到事项的处理页
+        // 判断row.type，确定todoType，判断row.is_back来判断是否是打回的todo。
         jumpToDetail(row) {
             switch (row.type) {
+                // 跳转到立项只有打回一种情况，不需要做判断。
                 case 1:
+                    /**
+                     * todoType == 1:（立项）
+                     *     is_back == true:     初审打回过来的，重做立项，跳转到立项信息的编辑页面。
+                     *     is_back == false:    （不存在）立项是第一个环节，没有提交过来的来源。
+                     * */
+
                     this.$router.push({
                         path: "basicinfos",
                         query: {
                             todo_id: row.id,
-                            basic_info_id: row.basic_info,
-                            // 是否是跳转
+                            basicInfoId: row.basic_info,
+                            // 是否是todo跳转
                             jump: true,
-                            // 是否为打回后重做，是的话打开编辑对话框，否则打开审批对话框
-                            redo: true
                         }
                     })
                     break
                 case 2:
-                    console.log("立卷(预留)");
+                    /**
+                     * todoType == 2:（初审）
+                     *     is_back == true:    （不存在）下一个环节是立卷，立卷不审批，不存在打回的。
+                     *     is_back == false:    立项提交过来的，跳转到初审的表单。
+                     */
+
+                    this.$router.push({
+                        path: "review",
+                        query: {
+                            todo_id: row.id,
+                            basicInfoId: row.basic_info,
+                            // 是否是todo跳转
+                            jump: true,
+                        }
+                    })
                     break
                 case 3:
-                    console.log("校对")
-                    // TODO: 实现跳转到校对页面的逻辑，具体思路详见设计笔记中的“思考”
-                    break
+                    /**
+                     * todoType == 3:（立卷）
+                     *     is_back == true:     校对打回过来的，重做立卷，跳转到鉴定信息的编辑页面。
+                     *     is_back == false:    编写鉴定信息后未提交，只是暂存，给自己创建的todo，跳转到鉴定信息的编辑页面。
+                     */
+
+                    this.$router.push({
+                        path: "apprinfos",
+                        query: {
+                            todo_id: row.id,
+                            basicInfoId: row.basic_info,
+                            // 是否是todo跳转
+                            jump: true,
+                            is_back: row.is_back,
+                        }
+                    });
+                    break;
                 case 4:
-                    console.log("终审");
-                    // TODO: 实现跳转到终审页面的逻辑，具体思路详见设计笔记中的“思考”
+                    /**
+                     * todoType == 4:（校对）
+                     *     is_back == true:        终审打回过来的，重做校对，跳转到校对的的表单。
+                     *     is_back == false:    立卷提交过来的，跳转到校对的表单。
+                     *     is_back属性在跳转的功能上，没有作用
+                     */
+
+
+                    this.$router.push({
+                        path: "proofread",
+                        query: {
+                            todo_id: row.id,
+                            basicInfoId: row.basic_info,
+                            // 是否是todo跳转
+                            jump: true,
+                            is_back: row.is_back,
+                        }
+                    });
+
                     break
                 case 5:
-                    console.log("归档");
-                    // TODO: 实现跳转到归档页面的逻辑，具体思路详见设计笔记中的“思考”
+                    /**
+                     * todoType == 5:（终审）
+                     *     is_back == true:     不存在。
+                     *     is_back == false:     校对提交过来的，跳转到终审的表单。
+                     */
+                    this.$router.push({
+                        path: "finalreview",
+                        query: {
+                            todo_id: row.id,
+                            basicInfoId: row.basic_info,
+                            jump: true,
+                            is_back: row.is_back,
+                        }
+                    });
+                    break
+
+                case 6:
+                    /**
+                     * todoType == 6:（归档）
+                     *     is_back == true:     不存在，归档是最后一个环节，不存在打回的情况。
+                     *     is_back == false:     终审提交过来的，跳转到校对的表单。
+                     */
+                    this.$router.push({
+                        path: "filephases",
+                        query: {
+                            todo_id: row.id,
+                            basicInfoId: row.basic_info,
+                            jump: true,
+                            is_back: row.is_back,
+                        }
+                    });
                     break
                 default:
                     this.$message.error("待办事项类型匹配错误")
-                    console.log("待办事项类型匹配错误")
             }
         },
 
         // 待办事项分页器size变化的监听事件
         handleTodoListSizeChange(size) {
             this.todoListSize = size
-            this.getBasicInfoList()
         },
 
         // 待办事项分页器page变化的监听事件
         handleTodoListCurrentChange(page) {
             this.todoListPage = page
-            this.getBasicInfoList()
         },
         // 已办分页器size变化的监听事件
         handleFinishedListSizeChange(size) {
             this.todoListSize = size
-            this.getBasicInfoList()
         },
 
         // 已办分页器page变化的监听事件
         handleFinishedListCurrentChange(page) {
             this.todoListPage = page
-            this.getBasicInfoList()
         },
-    },
+        // 用于table中展示是否打回的字段，element的table默认不直接显示布尔值
+        formatBoolean: function (row, column, cellValue) {
+            let ret = ''  //你想在页面展示的值
+            if (cellValue) {
+                ret = "是"  //根据自己的需求设定
+            } else {
+                ret = "否"
+            }
+            return ret
+        },
+    }
+    ,
     created() {
         this.getLoginUserID()
         this.getTodoList()

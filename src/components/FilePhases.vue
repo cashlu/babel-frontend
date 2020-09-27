@@ -37,29 +37,29 @@
                 <!-- 索引列 -->
                 <el-table-column type="index" label="序号"></el-table-column>
                 <el-table-column
-                        prop="basic_info_name"
-                        label="项目名称"
-                        min-width="180">
+                    prop="basic_info_name"
+                    label="项目名称"
+                    min-width="180">
                 </el-table-column>
                 <el-table-column
-                        prop="finished_date"
-                        label="完结时间"
-                        width="180">
+                    prop="finished_date"
+                    label="完结时间"
+                    width="180">
                 </el-table-column>
                 <el-table-column
-                        prop="file_date"
-                        label="归档时间"
-                        min-width="180">
+                    prop="file_date"
+                    label="归档时间"
+                    min-width="180">
                 </el-table-column>
                 <el-table-column
-                        prop="amount"
-                        label="份数"
-                        min-width="180">
+                    prop="amount"
+                    label="份数"
+                    min-width="180">
                 </el-table-column>
                 <el-table-column
-                        prop="delivery_text"
-                        label="送达情况"
-                        min-width="180">
+                    prop="delivery_text"
+                    label="送达情况"
+                    min-width="180">
                 </el-table-column>
 
                 <!-- 操作按钮列 -->
@@ -81,20 +81,21 @@
         </el-card>
         <!--分页-->
         <el-pagination
-                background
-                @size-change="handleSizeChange"
-                @current-change="handleCurrentChange"
-                :current-page="queryInfo.page"
-                :page-sizes="[10, 20, 50]"
-                :page-size="queryInfo.size"
-                layout="total, sizes, prev, pager, next, jumper"
-                :total="this.total">
+            background
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="queryInfo.page"
+            :page-sizes="[10, 20, 50]"
+            :page-size="queryInfo.size"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="this.total">
         </el-pagination>
 
         <!-- 新建归档的对话框 -->
         <el-dialog title="新建归档"
                    :visible.sync="addDialogVisible"
                    :close-on-click-modal="false"
+                   @close="dialogClosed"
                    width="30%">
             <el-form ref="addFileFormRef"
                      :rules="filePhaseFormRules"
@@ -103,33 +104,33 @@
                 <el-form-item label="项目" prop="basic_info">
                     <el-select v-model="filePhaseForm.basic_info">
                         <el-option
-                                v-for="item in basicInfoList"
-                                :key="item.id"
-                                :label="item.name"
-                                :value="item.id">
+                            v-for="item in basicInfoList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
                         </el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="项目结束日期" prop="finished_date">
                     <el-date-picker
-                            v-model="filePhaseForm.finished_date"
-                            align="right"
-                            type="date"
-                            placeholder="选择日期"
-                            :picker-options="pickerOptions"
-                            format="yyyy 年 MM 月 dd 日"
-                            value-format="yyyy-MM-dd">
+                        v-model="filePhaseForm.finished_date"
+                        align="right"
+                        type="date"
+                        placeholder="选择日期"
+                        :picker-options="pickerOptions"
+                        format="yyyy 年 MM 月 dd 日"
+                        value-format="yyyy-MM-dd">
                     </el-date-picker>
                 </el-form-item>
                 <el-form-item label="归档日期" prop="file_date">
                     <el-date-picker
-                            v-model="filePhaseForm.file_date"
-                            align="right"
-                            type="date"
-                            placeholder="选择日期"
-                            :picker-options="pickerOptions"
-                            format="yyyy 年 MM 月 dd 日"
-                            value-format="yyyy-MM-dd">
+                        v-model="filePhaseForm.file_date"
+                        align="right"
+                        type="date"
+                        placeholder="选择日期"
+                        :picker-options="pickerOptions"
+                        format="yyyy 年 MM 月 dd 日"
+                        value-format="yyyy-MM-dd">
                     </el-date-picker>
                 </el-form-item>
                 <el-form-item label="案卷数量" prop="amount">
@@ -138,10 +139,10 @@
                 <el-form-item label="送达状态" prop="delivery">
                     <el-select v-model="filePhaseForm.delivery">
                         <el-option
-                                v-for="item in deliveryStateList"
-                                :key="item.code"
-                                :label="item.name"
-                                :value="item.code">
+                            v-for="item in deliveryStateList"
+                            :key="item.code"
+                            :label="item.name"
+                            :value="item.code">
                         </el-option>
                     </el-select>
                 </el-form-item>
@@ -163,33 +164,33 @@
                 <el-form-item label="项目" prop="basic_info">
                     <el-select v-model="filePhaseForm.basic_info">
                         <el-option
-                                v-for="item in basicInfoList"
-                                :key="item.id"
-                                :label="item.name"
-                                :value="item.id">
+                            v-for="item in basicInfoList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
                         </el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="项目结束日期" prop="finished_date">
                     <el-date-picker
-                            v-model="filePhaseForm.finished_date"
-                            align="right"
-                            type="date"
-                            placeholder="选择日期"
-                            :picker-options="pickerOptions"
-                            format="yyyy 年 MM 月 dd 日"
-                            value-format="yyyy-MM-dd">
+                        v-model="filePhaseForm.finished_date"
+                        align="right"
+                        type="date"
+                        placeholder="选择日期"
+                        :picker-options="pickerOptions"
+                        format="yyyy 年 MM 月 dd 日"
+                        value-format="yyyy-MM-dd">
                     </el-date-picker>
                 </el-form-item>
                 <el-form-item label="归档日期" prop="file_date">
                     <el-date-picker
-                            v-model="filePhaseForm.file_date"
-                            align="right"
-                            type="date"
-                            placeholder="选择日期"
-                            :picker-options="pickerOptions"
-                            format="yyyy 年 MM 月 dd 日"
-                            value-format="yyyy-MM-dd">
+                        v-model="filePhaseForm.file_date"
+                        align="right"
+                        type="date"
+                        placeholder="选择日期"
+                        :picker-options="pickerOptions"
+                        format="yyyy 年 MM 月 dd 日"
+                        value-format="yyyy-MM-dd">
                     </el-date-picker>
                 </el-form-item>
                 <el-form-item label="案卷数量" prop="amount">
@@ -198,10 +199,10 @@
                 <el-form-item label="送达状态" prop="delivery">
                     <el-select v-model="filePhaseForm.delivery">
                         <el-option
-                                v-for="item in deliveryStateList"
-                                :key="item.code"
-                                :label="item.name"
-                                :value="item.code">
+                            v-for="item in deliveryStateList"
+                            :key="item.code"
+                            :label="item.name"
+                            :value="item.code">
                         </el-option>
                     </el-select>
                 </el-form-item>
@@ -215,214 +216,249 @@
 </template>
 
 <script>
-    export default {
-        name: "FilePhases",
-        data() {
-            return {
-                // get查询的分页参数
-                queryInfo: {
-                    page: 1,
-                    size: 10,
-                    stage: 2,
-                    paginator: false,
-                },
-                searchForm: {
-                    user: "",
-                    region: "",
-                },
-                // 归档列表
-                filePhasesList: [],
-                total: 0,
-                basicInfoList: [],
-                deliveryStateList: [],
-                addDialogVisible: false,
-                editDialogVisible: false,
-                filePhaseForm: {
-                    basic_info: "",
-                    finished_date: "",
-                    file_date: "",
-                    archivist: window.localStorage.getItem("id"),
-                    amount: "",
-                    delivery: ""
-                },
-                filePhaseFormRules: {
-                    basic_info: [
-                        {required: true, message: "请选择对应的项目", trigger: "change"},
-                    ],
-                    finished_date: [
-                        {required: true, message: "请选择项目结束日期", trigger: "change"},
-                    ],
-                    file_date: [
-                        {required: true, message: "请选择归档日期", trigger: "change"},
-                    ],
-                    amount: [
-                        {type: "number", required: true, message: "请输入正确的数量", trigger: "blur"},
-                    ],
-                    delivery: [
-                        {required: true, message: "请选择送达情况", trigger: "change"},
-                    ]
-                },
-                pickerOptions: {
-                    // 不能选择未来的日期
-                    // disabledDate(time) {
-                    //     return time.getTime() > Date.now()
-                    // },
-                    shortcuts: [{
-                        text: '今天',
-                        onClick(picker) {
-                            picker.$emit('pick', new Date())
-                        }
-                    }, {
-                        text: '昨天',
-                        onClick(picker) {
-                            const date = new Date()
-                            date.setTime(date.getTime() - 3600 * 1000 * 24)
-                            picker.$emit('pick', date)
-                        }
-                    }, {
-                        text: '一周前',
-                        onClick(picker) {
-                            const date = new Date()
-                            date.setTime(date.getTime() - 3600 * 1000 * 24 * 7)
-                            picker.$emit('pick', date)
-                        }
-                    }]
-                },
+export default {
+    name: "FilePhases",
+    data() {
+        return {
+            basicInfoId: "",
+            // get查询的分页参数
+            queryInfo: {
+                page: 1,
+                size: 10,
+                stage: 2,
+                paginator: false,
+            },
+            searchForm: {
+                user: "",
+                region: "",
+            },
+            // 归档列表
+            filePhasesList: [],
+            total: 0,
+            basicInfoList: [],
+            deliveryStateList: [],
+            addDialogVisible: false,
+            editDialogVisible: false,
+            filePhaseForm: {
+                basic_info: "",
+                finished_date: "",
+                file_date: "",
+                archivist: window.localStorage.getItem("id"),
+                amount: "",
+                delivery: ""
+            },
+            filePhaseFormRules: {
+                basic_info: [
+                    {required: true, message: "请选择对应的项目", trigger: "change"},
+                ],
+                finished_date: [
+                    {required: true, message: "请选择项目结束日期", trigger: "change"},
+                ],
+                file_date: [
+                    {required: true, message: "请选择归档日期", trigger: "change"},
+                ],
+                amount: [
+                    {type: "number", required: true, message: "请输入正确的数量", trigger: "blur"},
+                ],
+                delivery: [
+                    {required: true, message: "请选择送达情况", trigger: "change"},
+                ]
+            },
+            pickerOptions: {
+                // 不能选择未来的日期
+                // disabledDate(time) {
+                //     return time.getTime() > Date.now()
+                // },
+                shortcuts: [{
+                    text: '今天',
+                    onClick(picker) {
+                        picker.$emit('pick', new Date())
+                    }
+                }, {
+                    text: '昨天',
+                    onClick(picker) {
+                        const date = new Date()
+                        date.setTime(date.getTime() - 3600 * 1000 * 24)
+                        picker.$emit('pick', date)
+                    }
+                }, {
+                    text: '一周前',
+                    onClick(picker) {
+                        const date = new Date()
+                        date.setTime(date.getTime() - 3600 * 1000 * 24 * 7)
+                        picker.$emit('pick', date)
+                    }
+                }]
+            },
+        }
+    },
+    methods: {
+        async getFileList() {
+            const res = await this.$axios.get("filephases/")
+            if (res.status !== 200) {
+                return this.$message.error("获取归档列表失败")
             }
+            this.total = res.count
+            this.filePhasesList = res.data.results
         },
-        methods: {
-            async getFileList() {
-                const res = await this.$axios.get("filephases/")
-                if (res.status !== 200) {
-                    return this.$message.error("获取归档列表失败")
+        async getBasicInfoList() {
+            const res = await this.$axios.get("basicinfos/", {
+                params: {
+                    stage: 10
                 }
-                this.total = res.count
-                this.filePhasesList = res.data.results
-            },
-            async getBasicInfoList() {
-                const res = await this.$axios.get("basicinfos/", {
-                    params: {
-                        stage: 10
-                    }
-                })
-                if (res.status !== 200) {
-                    return this.$message.error("获取项目列表失败")
-                }
-                this.basicInfoList = res.data
-            },
-            async getDeliverStateList() {
-                const res = await this.$axios.get("deliverystates/")
-                if (res.status !== 200) {
-                    return this.$message.error("获取送达字典失败")
-                }
-                this.deliveryStateList = res.data
-            },
-            handleSizeChange(size) {
-                this.queryInfo.size = size
-                this.getFileList()
-            },
-            handleCurrentChange(page) {
-                this.queryInfo.page = page
-                this.getFileList()
-            },
-            // TODO: 这个方法貌似可以去掉，把语句写在行间
-            showAddDialog() {
-                this.addDialogVisible = true
-                this.$nextTick(() => {
-                    // 清空fileData
-                    this.filePhaseForm = {}
-                    // 给fileData一些必要的初始化值，例如这里赋值了登录用户的ID
-                    this.filePhaseForm.archivist = window.localStorage.getItem("id")
-                    // 这个操作主要的目的是清除表单验证的提示
-                    this.$refs.addFileFormRef.resetFields()
-                })
-            },
+            })
+            if (res.status !== 200) {
+                return this.$message.error("获取项目列表失败")
+            }
+            this.basicInfoList = res.data
+        },
+        async getDeliverStateList() {
+            const res = await this.$axios.get("deliverystates/")
+            if (res.status !== 200) {
+                return this.$message.error("获取送达字典失败")
+            }
+            this.deliveryStateList = res.data
+        },
+        handleSizeChange(size) {
+            this.queryInfo.size = size
+            this.getFileList()
+        },
+        handleCurrentChange(page) {
+            this.queryInfo.page = page
+            this.getFileList()
+        },
+        // TODO: 这个方法貌似可以去掉，把语句写在行间
+        showAddDialog() {
+            this.addDialogVisible = true
+            // this.$nextTick(() => {
+            //     // 清空fileData
+            //     this.filePhaseForm = {}
+            //     // 给fileData一些必要的初始化值，例如这里赋值了登录用户的ID
+            //     this.filePhaseForm.archivist = window.localStorage.getItem("id")
+            //     // 这个操作主要的目的是清除表单验证的提示
+            //     this.$refs.addFileFormRef.resetFields()
+            // })
+        },
 
-            addFilePhase() {
-                this.$refs.addFileFormRef.validate(async (valid) => {
-                    if (!valid) {
-                        this.$message.error("表单验证失败")
-                        return
-                    }
-                    const res = await this.$axios.post("filephases/", this.filePhaseForm)
-                    if (res.status !== 201) {
-                        return this.$message.error("归档失败")
-                    }
-                    // FIXME：这两个操作应该做成事务
-                    // 更新stage状态
-                    const projRes = await this.$axios.patch("basicinfos/" +
-                        this.filePhaseForm.basic_info + "/",
-                        {
-                            "stage": 11
-                        }
-                    )
-                    if (projRes.status !== 200) {
-                        return this.$message.error("状态更新失败")
-                    }
-                    this.addDialogVisible = false
-                    this.getFileList()
-                    this.getBasicInfoList()
-                })
-            },
-            async showEditDialog(id) {
-                const res = await this.$axios.get("filephases/" + id)
-                if (res.status !== 200) {
-                    return this.$message.error("获取归档信息失败")
+        addFilePhase() {
+            this.$refs.addFileFormRef.validate(async (valid) => {
+                if (!valid) {
+                    this.$message.error("表单验证失败")
+                    return
                 }
-                this.filePhaseForm = res.data
-                this.editDialogVisible = true
-            },
-            // 修改信息的保存事件
-            async saveEditFile() {
-                const res = await this.$axios.put("filephases/" + this.filePhaseForm.id + "/",
-                    this.filePhaseForm)
-                if (res.status !== 200) {
-                    return this.$message.error("信息修改失败")
+                const res = await this.$axios.post("filephases/", this.filePhaseForm)
+                if (res.status !== 201) {
+                    return this.$message.error("归档失败")
                 }
-                this.editDialogVisible = false
-                await this.getFileList()
-                return this.$message.success("修改成功")
-            },
-            async deleteFilePhase(row) {
-                const confirmResult = await this.$confirm('此操作将永久删除该文件, 是否继续?',
-                    '提示', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'warning',
-                        closeOnClickModal: false,
-                    }).catch(err => {
-                    return err
-                })
-                if (confirmResult !== "confirm") {
-                    return this.$message.info("已取消删除")
-                }
-                // 删除FilePhase数据
-                const res = await this.$axios.delete("filephases/" + row.id + "/")
-                if (res.status !== 204) {
-                    return this.$message.error("删除归档信息失败")
-                }
-                // 重置BasicInfo的stage
-                const basicRes = await this.$axios.patch("basicinfos/" + row.basic_info + "/",
+                // FIXME：这两个操作应该做成事务
+                // 更新stage状态
+                const projRes = await this.$axios.patch("basicinfos/" +
+                    this.filePhaseForm.basic_info + "/",
                     {
-                        "stage": "2"
+                        "stage": 11
                     }
                 )
-                if (basicRes.status !== 200) {
-                    return this.$message.error("重置状态失败")
+                if (projRes.status !== 200) {
+                    return this.$message.error("状态更新失败")
                 }
+                this.addDialogVisible = false
                 await this.getFileList()
                 await this.getBasicInfoList()
-                return this.$message.success("删除归档成功")
 
-            },
+                //更新todo的状态
+                await this.updateTodo()
+            })
+        },
+        async showEditDialog(id) {
+            const res = await this.$axios.get("filephases/" + id)
+            if (res.status !== 200) {
+                return this.$message.error("获取归档信息失败")
+            }
+            this.filePhaseForm = res.data
+            this.editDialogVisible = true
+        },
+        // 修改信息的保存事件
+        async saveEditFile() {
+            const res = await this.$axios.put("filephases/" + this.filePhaseForm.id + "/",
+                this.filePhaseForm)
+            if (res.status !== 200) {
+                return this.$message.error("信息修改失败")
+            }
+            this.editDialogVisible = false
+            await this.getFileList()
+            return this.$message.success("修改成功")
+        },
+        async deleteFilePhase(row) {
+            const confirmResult = await this.$confirm('此操作将永久删除该文件, 是否继续?',
+                '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    closeOnClickModal: false,
+                }).catch(err => {
+                return err
+            })
+            if (confirmResult !== "confirm") {
+                return this.$message.info("已取消删除")
+            }
+            // 删除FilePhase数据
+            const res = await this.$axios.delete("filephases/" + row.id + "/")
+            if (res.status !== 204) {
+                return this.$message.error("删除归档信息失败")
+            }
+            // 重置BasicInfo的stage
+            const basicRes = await this.$axios.patch("basicinfos/" + row.basic_info + "/",
+                {
+                    "stage": "10"
+                }
+            )
+            if (basicRes.status !== 200) {
+                return this.$message.error("重置状态失败")
+            }
+            await this.getFileList()
+            await this.getBasicInfoList()
+            return this.$message.success("删除归档成功")
 
         },
-        created() {
-            this.getFileList()
-            this.getBasicInfoList()
-            this.getDeliverStateList()
+
+        dialogClosed() {
+            this.$refs.addFileFormRef.resetFields()
+        },
+
+        // 更新待办事项的状态为完成
+        async updateTodo() {
+            const res = await this.$axios.get("/todo", {
+                params: {
+                    basic_info: this.basicInfoId
+                }
+            })
+            if (res.status !== 200) {
+                return this.$message.error("获取待办事项失败")
+            }
+            if (res.data.results[0]) {
+                let todoId = res.data.results[0].id
+                const updateRes = await this.$axios.patch("/todo/" + todoId + "/", {
+                    finished: true
+                })
+                if (updateRes.status !== 200) {
+                    return this.$message.error("更新待办事项不状态失败")
+                }
+            }
+        },
+
+    },
+    created() {
+        if (this.$route.query.jump && this.$route.query.basicInfoId) {
+            this.basicInfoId = this.$route.query.basicInfoId
+            this.filePhaseForm.basic_info = this.basicInfoId
+            this.showAddDialog()
         }
+
+        this.getFileList();
+        this.getBasicInfoList()
+        this.getDeliverStateList()
     }
+}
 </script>
 
 <style scoped>

@@ -529,6 +529,20 @@ export default {
             this.editForm = res.data
             this.editDialogVisible = true
         },
+
+        // 通过basicInfoId获取数据并打开编辑页面
+        async showEditDialogByBasicInfoId(basicInfoId) {
+            const res = await this.$axios.get("apprinfos/", {
+                params: {
+                    basicInfoId: basicInfoId
+                }
+            })
+            if (res.status !== 200) {
+                return this.$message.error("获取鉴定信息详情失败")
+            }
+            this.editForm = res.data[0]
+            this.editDialogVisible = true
+        },
         showDetailDialog(row) {
             this.detailDialogVisible = true
             this.detailForm = row
@@ -589,11 +603,11 @@ export default {
 
                 if (stage === 5) {
                     // 暂存，给立卷人自己添加一个待办
-                    await this.saveTodo(this.addForm.basic_info, false, this.addForm.archivist, 2);
+                    await this.saveTodo(this.addForm.basic_info, false, this.addForm.archivist, 3);
                 }
                 // 给校对添加待办
                 else if (stage === 6) {
-                    await this.saveTodo(this.addForm.basic_info, false, this.addForm.proofreader, 3);
+                    await this.saveTodo(this.addForm.basic_info, false, this.addForm.proofreader, 4);
                 }
 
             })
@@ -627,7 +641,7 @@ export default {
                 // 给校对添加待办
                 if (stage === 6) {
                     await this.updateTodo()
-                    await this.saveTodo(this.editForm.basic_info, false, this.editForm.proofreader, 3);
+                    await this.saveTodo(this.editForm.basic_info, false, this.editForm.proofreader, 4);
                 }
             })
         },
@@ -715,6 +729,12 @@ export default {
         },
     },
     created() {
+        // 判断是否是通过待办事项跳转过来的
+        if (this.$route.query.jump) {
+            this.showEditDialogByBasicInfoId(this.$route.query.basicInfoId)
+        }
+
+
         this.getApprInfoList()
         // this.getBasicInfoList("0")
         this.getUserList()

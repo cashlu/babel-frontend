@@ -335,7 +335,7 @@ export default {
         },
     },
     created() {
-        this.basicInfoId = this.$route.query.id
+        this.basicInfoId = this.$route.query.basicInfoId;
         this.getBasicInfoDetail()
         this.getCheckRecords(this.basicInfoId);
     }

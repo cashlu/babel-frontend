@@ -27,7 +27,7 @@ const routes = [
     {
         path: '/home',
         component: Home,
-        redirect: "/welcome",
+        redirect: "/todolist",
         children: [
             {path: '/welcome', component: Welcome},
             {path: '/basicinfos', component: BasicInfos},
@@ -41,8 +41,8 @@ const routes = [
             {path: '/orgs', component: Orgs},
             {path: '/devices', component: Devices},
             {path: '/checkrecords', component: CheckRecord},
-            {path: '/proofread/:id', component: Proofread},
-            {path: '/finalreview/:id', component: FinalReview},
+            {path: '/proofread/', component: Proofread},
+            {path: '/finalreview/', component: FinalReview},
             {path: '/todolist', component: TodoList},
             {path: '/review', component: Review},
         ]

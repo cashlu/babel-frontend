@@ -450,6 +450,7 @@ export default {
 
     data() {
         return {
+            basicInfoId: "",
             basicInfo: {},
             apprFileList: [],
             apprInfoForm: {},
@@ -475,8 +476,8 @@ export default {
             },
             lastStage: "7",
             nextStage: "10",
-            lastTodoType: "3",
-            nextTodoType: "5",
+            lastTodoType: "4",
+            nextTodoType: "6",
             lastUser: "",
             nextUser: "",
             checkRecords: [],
@@ -750,7 +751,7 @@ export default {
                 await this.updateTodo()
 
                 // 给nextUser添加todo
-                await this.saveTodo(true, this.nextUser, this.lastTodoType)
+                await this.saveTodo(false, this.nextUser, this.nextTodoType)
 
                 this.redirectToBasicInfo()
 
@@ -758,13 +759,14 @@ export default {
         },
     },
     created() {
-        this.getBasicInfo(this.$route.params.id)
-        this.getApprFileList(this.$route.params.id)
-        this.getLocaleFileList(this.$route.params.id)
-        this.getApprSampleList(this.$route.params.id)
-        this.getApprInfo(this.$route.params.id)
+        this.basicInfoId = this.$route.query.basicInfoId
+        this.getBasicInfo(this.basicInfoId)
+        this.getApprFileList(this.basicInfoId)
+        this.getLocaleFileList(this.basicInfoId)
+        this.getApprSampleList(this.basicInfoId)
+        this.getApprInfo(this.basicInfoId)
         this.getUserList()
-        this.getCheckRecords(this.$route.params.id)
+        this.getCheckRecords(this.basicInfoId)
     }
 }
 </script>
