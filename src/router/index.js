@@ -18,7 +18,7 @@ import Proofread from "@/components/Proofread";
 import FinalReview from "@/components/FinalReview";
 import TodoList from "@/components/TodoList";
 import Review from "@/components/Review";
-
+import ApplyRecs from "@/components/ApplyRecs";
 Vue.use(VueRouter)
 
 const routes = [
@@ -45,6 +45,7 @@ const routes = [
             {path: '/finalreview/', component: FinalReview},
             {path: '/todolist', component: TodoList},
             {path: '/review', component: Review},
+            {path: '/applyrecs', component: ApplyRecs},
         ]
     },
 ]
