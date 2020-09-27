@@ -7,9 +7,10 @@
             <el-breadcrumb-item>设备管理列表</el-breadcrumb-item>
         </el-breadcrumb>
         <!--  卡片区-->
+        <!-- TODO: 搜索功能还未实现-->
         <el-card class="box-card">
             <el-row>
-                <el-col :span="21">
+                <el-col :span="18">
                     <el-form :inline="true" :model="searchForm" size="mini">
                         <el-form-item label="材料名称">
                             <el-input v-model="searchForm.user"></el-input>
@@ -27,6 +28,9 @@
                 </el-col>
                 <el-col :span="3">
                     <el-button size="medium" type="primary" @click="showAddDialog">添加仪器</el-button>
+                </el-col>
+                <el-col :span="3">
+                    <el-button size="medium" type="success" @click="showApplyDialog">设备申领</el-button>
                 </el-col>
             </el-row>
             <el-table
@@ -51,12 +55,12 @@
                 <el-table-column
                     prop="detection_period"
                     label="检定周期（月）"
-                    min-width="100">
+                    min-width="150">
                 </el-table-column>
                 <el-table-column
                     prop="detection_department"
                     label="鉴定单位"
-                    min-width="180">
+                    min-width="200">
                 </el-table-column>
                 <el-table-column
                     prop="last_detection"
@@ -83,13 +87,9 @@
                                    icon="el-icon-delete">删除
                         </el-button>
                         <el-button size="mini"
-                                   type="warning"
-                                   @click=""
-                                   icon="el-icon-delete">申领
-                        </el-button>
-                        <el-button size="mini"
                                    type="success"
-                                   @click=""
+                                   v-show="scope.row.status !== 1"
+                                   @click="returnDevice(scope.row.id)"
                                    icon="el-icon-delete">归还
                         </el-button>
                     </template>
@@ -113,6 +113,7 @@
             :visible.sync="addDialogVisible"
             :close-on-press-escape="false"
             :close-on-click-modal="false"
+            @close="addDialogClosed"
             width="30%">
 
             <el-form ref="addFormRef"
@@ -190,6 +191,88 @@
                 <el-button type="primary" @click="editDevice">确 定</el-button>
             </span>
         </el-dialog>
+        <!-- 设备申领对话框 -->
+        <el-dialog title="设备申领"
+                   :visible.sync="applyDialogVisible"
+                   :close-on-press-escape="false"
+                   :close-on-click-modal="false"
+                   @close="applyDialogClosed"
+                   width="80%">
+            <el-card header="请勾选要申领的设备">
+                <el-table
+                    ref="applyTableRef"
+                    :data="availableDevices"
+                    tooltip-effect="dark"
+                    style="width: 100%"
+                    @selection-change="handleSelectionChange">
+                    <el-table-column
+                        fixed
+                        type="selection"
+                        width="55">
+                    </el-table-column>
+                    <el-table-column
+                        fixed
+                        prop="device_id"
+                        label="设备编号"
+                        min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                        fixed
+                        prop="name"
+                        label="名称"
+                        min-width="150">
+                    </el-table-column>
+                    <el-table-column
+                        prop="model"
+                        label="型号"
+                        min-width="150">
+                    </el-table-column>
+                    <el-table-column
+                        prop="detection_department"
+                        label="检定机构"
+                        min-width="300">
+                    </el-table-column>
+                    <el-table-column
+                        prop="detection_period"
+                        label="检定周期(月)"
+                        min-width="100">
+                    </el-table-column>
+                    <el-table-column
+                        prop="last_detection"
+                        label="上次检定日期"
+                        min-width="120">
+                    </el-table-column>
+                </el-table>
+            </el-card>
+            <br>
+            <el-card>
+                <el-form :model="applyDeviceForm"
+                         :rules="applyDeviceFormRules"
+                         ref="applyDeviceFormRef"
+                         label-width="120px">
+                    <el-form-item label="关联项目" prop="basicInfo">
+                        <el-select v-model="applyDeviceForm.basicInfo">
+                            <el-option
+                                v-for="item in availableBasicInfos"
+                                :key="item.id"
+                                :label="item.name"
+                                :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="备注：" prop="comment">
+                        <el-input type="textarea"
+                                  :autosize="{ minRows: 4, maxRows: 10}"
+                                  v-model="applyDeviceForm.comment"></el-input>
+                    </el-form-item>
+
+                </el-form>
+            </el-card>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="info" @click="applyDialogClosed" style="font-weight: bold">取 消</el-button>
+                <el-button type="primary" @click="applyDevices" style="font-weight: bold">提 交</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -213,15 +296,14 @@ export default {
             userList: [],
             addDialogVisible: false,
             editDialogVisible: false,
-            // TODO: 这里的初始值在测试后要去掉
             addForm: {
                 device_id: "",
-                name: "望远镜",
-                model: "KJ22",
-                detection_period: "6",
-                detection_department: "XX光学",
-                last_detection: "2019-3-1",
-                status: "1",
+                name: "",
+                model: "",
+                detection_period: "",
+                detection_department: "",
+                last_detection: "",
+                status: "",
             },
             editForm: {
                 device_id: "",
@@ -251,10 +333,35 @@ export default {
                 last_detection: [
                     {required: true, message: "请选择上次检定日期", trigger: "blur"},
                 ]
-            }
+            },
+            applyDialogVisible: false,
+            deviceGroups: [],
+            activeNames: [],
+            selectedDevice: [],
+            availableDevices: [],
+            applyDeviceForm: {},
+            applyDeviceFormRules: {
+                basicInfo: [
+                    {required: false, message: "请选择关联项目", trigger: "blur"},
+                ],
+                comment: [
+                    {required: false, message: "请输入备注", trigger: "blur"},
+                ],
+            },
+            availableBasicInfos: [],
         }
     },
     methods: {
+        handleSelectionChange(val) {
+            this.selectedDevice = val
+        },
+        applyDialogClosed() {
+            this.$refs.applyTableRef.clearSelection()
+            this.$refs.applyDeviceFormRef.resetFields()
+            this.applyDialogVisible = false
+        },
+        handleChange(val) {
+        },
         handleSizeChange(size) {
             this.queryInfo.size = size
             this.getDeviceList()
@@ -273,6 +380,17 @@ export default {
             this.deviceList = res.data.results
             this.total = res.data.count
         },
+        async getAvailableDevices() {
+            const res = await this.$axios.get("devices/", {
+                params: {
+                    status: 1
+                }
+            })
+            if (res.status !== 200) {
+                return this.$message.error("获取可用设备列表失败")
+            }
+            this.availableDevices = res.data
+        },
         async getUserList() {
             const res = await this.$axios.get("users/")
             if (res.status !== 200) {
@@ -282,19 +400,6 @@ export default {
         },
         showAddDialog() {
             this.addDialogVisible = true
-            this.$nextTick(() => {
-                // TODO: 这里的初始值在测试后要去掉
-                this.addForm = {
-                    device_id: "",
-                    name: "望远镜",
-                    model: "KJ22",
-                    detection_period: "6",
-                    detection_department: "XX光学",
-                    last_detection: "2019-3-1",
-                    status: "1",
-                }
-                this.$refs.addForm.resetFields()
-            })
         },
         async addDevice() {
             this.$refs.addFormRef.validate(async (valid) => {
@@ -308,7 +413,7 @@ export default {
                 }
                 this.$message.success("添加设备成功")
                 this.addDialogVisible = false
-                this.getDeviceList()
+                await this.getDeviceList()
             })
         },
         showEditDialog(row) {
@@ -328,7 +433,7 @@ export default {
                 }
                 this.$message.success("修改设备成功")
                 this.editDialogVisible = false
-                this.getDeviceList()
+                await this.getDeviceList()
             })
         },
         async deleteDevice(row) {
@@ -349,13 +454,122 @@ export default {
 
                 return this.$message.error("删除设备失败")
             }
-            this.getDeviceList()
+            await this.getDeviceList()
             return this.$message.success("删除设备成功")
+        },
+        addDialogClosed() {
+            this.$refs.addFormRef.resetFields()
+        },
+
+        async getDeviceGroups() {
+            const res = await this.$axios.get("devicegroup")
+            if (res.status !== 200) {
+                return this.$message.error("获取设备分组失败")
+            }
+            this.deviceGroups = res.data
+        },
+
+        showApplyDialog() {
+            this.getAvailableDevices()
+            this.getAvailableBasicInfo()
+            this.applyDialogVisible = true
+
+        },
+
+        // 获取stage为4,5,6的项目列表
+        async getAvailableBasicInfo() {
+            const res = await this.$axios.get("basicinfos", {
+                params: {
+                    canApplyDevice: true
+                }
+            })
+            if (res.status !== 200) {
+                return this.$message.error("获取项目列表失败")
+            }
+            this.availableBasicInfos = res.data
+        },
+
+        // 申领提交
+        async applyDevices() {
+            // 申领记录
+            const res = await this.$axios.post("applyrecs/", {
+                basic_info: this.applyDeviceForm.basicInfo,
+                proposer: window.localStorage.getItem("id"),
+                comment: this.applyDeviceForm.comment
+            })
+            if (res.status !== 201) {
+                return this.$message.error("创建设备申领记录失败")
+            }
+            // 申领明细
+            let recordId = res.data.id
+            for (let item of this.selectedDevice) {
+                const res = await this.$axios.post("applyrecdetail/", {
+                    apply_record: recordId,
+                    device: item.id,
+                    is_returned: false,
+                    return_time: null
+                })
+                if (res.status !== 201) {
+                    this.$message.error("添加申领明细失败")
+                } else {
+                    const res = await this.$axios.patch("devices/" + item.id + "/", {
+                        status: 2
+                    })
+                    if (res.status !== 200) {
+                        this.$message.error("更新设备库存状态失败")
+                    }
+                }
+            }
+            this.applyDialogClosed()
+        },
+
+        // 归还设置
+        // 更新recordDetail的信息，更新devices的信息
+        async returnDevice(deviceId) {
+            await this.updateDeviceStatus(deviceId)
+            await this.updateRecordDetail(deviceId)
+            await this.getDeviceList()
+        },
+
+        // 更新设备的库存为在库
+        async updateDeviceStatus(deviceId) {
+            const res = await this.$axios.patch("devices/" + deviceId + "/", {
+                status: 1
+            })
+            if (res.status !== 200) {
+                this.$message.error("更新设备库存状态失败")
+            }
+        },
+
+        // 更新recordDetail，补充归还日期和归还状态
+        async updateRecordDetail(deviceId) {
+            // 获取最后一条记录
+            const res = await this.$axios.get("applyrecdetail", {
+                params: {
+                    deviceId: deviceId
+                }
+            })
+            if (res.status !== 200) {
+                return this.$message.error("获取设备出库明细失败")
+            }
+            let rec = res.data[0]
+            if (rec) {
+                // 更新状态
+                const res = await this.$axios.patch("applyrecdetail/" + rec.id + "/", {
+                    is_returned: true,
+                })
+                if (res.status !== 200) {
+                    this.$message.error("更新出库明细状态失败")
+                }
+            }
         }
+
+
     },
     created() {
         this.getDeviceList()
         this.getUserList()
+        this.getDeviceGroups()
     },
 }
 </script>
